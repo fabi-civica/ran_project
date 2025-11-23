@@ -1,0 +1,15 @@
+version: 2
+
+models:
+  - name: base_alumno15_bs_id
+    description: ""
+
+  - name: base_alumno15_bs_ethport
+    description: ""
+
+  - name: base_alumno15_bs_brd
+    description: ""
+
+  - name: base_alumno15_bs_by_cell_status
+    description: ""
+  
