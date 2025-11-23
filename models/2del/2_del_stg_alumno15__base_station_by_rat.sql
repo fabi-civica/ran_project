@@ -1,3 +1,4 @@
+/*
 {{ config(materialized='view') }}
 
 with source_raw_network_elements_info as (
@@ -20,7 +21,7 @@ transform_base_station_generaby_rat as (
 ),
 
 renamed_base_station_generaby_rat as (
-/*
+
     select
         ne_name::varchar(15),
         rat_tecnology
@@ -29,7 +30,7 @@ renamed_base_station_generaby_rat as (
     from source_raw_network_elements_info as e
     join source_stg_alumno15__bs_rat as r 
       on r.ne_id = s.ne_id
-*/
+
     select
         *
     from transform_base_station_generaby_rat sd
@@ -39,7 +40,7 @@ renamed_base_station_generaby_rat as (
 )
 
 select * from renamed_base_station_generaby_rat
-
+*/
 
 
 
