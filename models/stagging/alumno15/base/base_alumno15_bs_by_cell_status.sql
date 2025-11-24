@@ -11,8 +11,6 @@ renamed as (
 
     select
         {{ dbt_utils.generate_surrogate_key(['node_name']) }} as bs_id,
-        node_name::varchar(15) as ne_name, -- no se si debo quitar esta columna paraevitar deduplicados
-        ne as ne_id, -- no se si debo quitar esta columna paraevitar deduplicados
         local_cell_id::NUMBER(9,0),
         cell_name::varchar(25),
         cell_instance_state as cell_status,

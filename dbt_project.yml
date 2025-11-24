@@ -39,7 +39,11 @@ models:
     columns: true
   +transient: false
   proyecto_fabi:
-    staging:
+    stagging:
       +materialized: view
       +database: alumno15_dev_silver
-      +schema: stg
+      +schema: stg_try
+      base:
+        +schema: base_try
+    #2del:
+    #  +enabled: false

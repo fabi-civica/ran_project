@@ -18,9 +18,6 @@ sources:
       - name: raw_bs_by_cell_status
         description: ""
 
-      - name: raw_bs_id
-        description: ""
-
       - name: raw_bs_by_cell_config
         description: ""
 
@@ -28,6 +25,9 @@ sources:
         description: ""
 
       - name: bs_by_cell_config_bandwidth
+        description: ""
+
+      - name: raw_brd_consumo
         description: ""
 
       - name: raw_network_elements_info
@@ -269,120 +269,5 @@ sources:
             data_type: varchar
             description: ""
           - name: clearance_notify_time_nt
-            data_type: varchar
-            description: ""
-
-      - name: raw_event_logs
-        description: ""
-        columns:
-          - name: first_col
-            data_type: varchar
-            description: ""
-          - name: severity
-            data_type: varchar
-            description: ""
-          - name: event_id
-            data_type: varchar
-            description: ""
-          - name: name
-            data_type: varchar
-            description: ""
-          - name: ne_type
-            data_type: varchar
-            description: ""
-          - name: event_source
-            data_type: varchar
-            description: ""
-          - name: mo_name
-            data_type: varchar
-            description: ""
-          - name: location_information
-            data_type: varchar
-            description: ""
-          - name: occurred_on_nt
-            data_type: varchar
-            description: ""
-          - name: rru_name
-            data_type: varchar
-            description: ""
-          - name: rf_site_name
-            data_type: varchar
-            description: ""
-          - name: cell_name
-            data_type: varchar
-            description: ""
-          - name: bbu_name
-            data_type: varchar
-            description: ""
-          - name: enodeb_id
-            data_type: varchar
-            description: ""
-          - name: gnodeb_id
-            data_type: varchar
-            description: ""
-          - name: log_serial_number
-            data_type: varchar
-            description: ""
-          - name: user_label
-            data_type: varchar
-            description: ""
-          - name: equipment_event_serial_number
-            data_type: varchar
-            description: ""
-          - name: additional_information
-            data_type: varchar
-            description: ""
-          - name: maintenance_status
-            data_type: varchar
-            description: ""
-          - name: subnet
-            data_type: varchar
-            description: ""
-          - name: source_system
-            data_type: varchar
-            description: ""
-          - name: dev_root_csn
-            data_type: varchar
-            description: ""
-          - name: trouble_ticket_id
-            data_type: varchar
-            description: ""
-          - name: maintenance_region
-            data_type: varchar
-            description: ""
-          - name: type
-            data_type: varchar
-            description: ""
-          - name: comment
-            data_type: varchar
-            description: ""
-          - name: common_event_identifier
-            data_type: varchar
-            description: ""
-          - name: external_resource_id
-            data_type: varchar
-            description: ""
-          - name: link_name
-            data_type: varchar
-            description: ""
-          - name: link_type
-            data_type: varchar
-            description: ""
-          - name: object_type
-            data_type: varchar
-            description: ""
-          - name: operation_impact_flag
-            data_type: varchar
-            description: ""
-          - name: received_on_st
-            data_type: varchar
-            description: ""
-          - name: ne_address
-            data_type: varchar
-            description: ""
-          - name: ne_virtual_mark
-            data_type: varchar
-            description: ""
-          - name: occurrence_notify_time_nt
             data_type: varchar
             description: ""
