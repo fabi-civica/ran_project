@@ -1,7 +1,7 @@
 {{
     codegen.generate_source(
-        schema_name = 'alumno15',
-        database_name = 'alumno15_dev_bronze',
+        schema_name = 'DBT_FABI_STG_TRY',
+        database_name = 'ALUMNO15_DEV_SILVER',
         generate_columns = True,
         include_descriptions=True,
         include_data_types=True,

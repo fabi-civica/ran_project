@@ -30,6 +30,12 @@ sources:
       - name: raw_brd_consumo
         description: ""
 
+      - name: stats_cell_rrc_rab
+        description: ""
+      
+      - name: stats_cell_traffic
+        description: ""
+
       - name: raw_network_elements_info
         description: ""
         columns:
