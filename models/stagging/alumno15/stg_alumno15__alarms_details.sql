@@ -19,9 +19,11 @@ renamed_alarm_log as (
     select distinct
         alarm_id,
         trim(severity) as severity,
-        name::varchar(50) as alarm_name,
-        --trim(source_system) as source_system
-        source_system
+        name::varchar(100) as alarm_name,
+        trim(source_system) as source_system,
+        trim(type) as alarm_type,
+        trim(auto_clear) as auto_clear,
+        trim(object_type) as object_type
 
 
     from transform_alarm_log

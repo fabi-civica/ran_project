@@ -30,6 +30,12 @@ renamed_alarm_log as (
             to_timestamp_ntz('2000-01-01 00:01', 'YYYY-MM-DD HH24:MI'))) as cleared_on,
         case when clearance_status = 'Uncleared' then FALSE ELSE TRUE END AS is_cleared,
         log_serial_number::number(15,0) as log_serial_number,
+        toggling_times::number(3,0) as toggling_times,
+        convert_timezone('Europe/Madrid',  coalesce(
+            try_to_timestamp_ntz(regexp_replace( received_on_st, ' DST$', ''), 'YYYY-MM-DD HH24:MI:SS'),
+            try_to_timestamp_ntz( received_on_st, 'MM/DD/YYYY HH24:MI'),
+            to_timestamp_ntz('2000-01-01 00:01', 'YYYY-MM-DD HH24:MI'))) as  received_on
+
 
         
 
