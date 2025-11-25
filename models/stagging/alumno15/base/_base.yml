@@ -1,6 +1,9 @@
 version: 2
 
 models:
+  - name: base_alumno15_bs_by_element_info
+    description: ""
+    
   - name: base_alumno15_bs_ethport
     description: ""
 
@@ -10,6 +13,6 @@ models:
   - name: base_alumno15_bs_by_cell_configuration
     description: ""
   
-  - name: base_alumno15_bs_by_element_info
-    description: ""
+  
+
 

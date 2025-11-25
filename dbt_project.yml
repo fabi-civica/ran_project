@@ -42,8 +42,13 @@ models:
     stagging:
       +materialized: view
       +database: alumno15_dev_silver
-      +schema: stg_try
+      +schema: stg
       base:
-        +schema: base_try
+        +schema: base_try #esto para que es?
+    marts:
+      +materialized: table
+      +database: alumno15_dev_gold
+      +schema: marts
+
     #2del:
     #  +enabled: false
