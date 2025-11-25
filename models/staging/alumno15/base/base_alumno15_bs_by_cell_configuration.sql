@@ -10,9 +10,8 @@ with source as (
 renamed as (
 
     select
-        {{ dbt_utils.generate_surrogate_key(['node_name']) }} as bs_id,
-        local_cell_id::number(8,0) as local_cell_id,
         {{ dbt_utils.generate_surrogate_key(['cell_name']) }} as cell_id,
+        {{ dbt_utils.generate_surrogate_key(['node_name']) }} as bs_id,
         cell_name::varchar(25) as cell_name,
         local_cell_id::number(8,0) as local_cell_id,
         phycellid::number(8,0) as phycellid,

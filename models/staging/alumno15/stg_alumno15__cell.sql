@@ -18,7 +18,6 @@ renamed_bs_info as (
     select
         a.cell_id,
         a.bs_id,
-        a.local_cell_id,
         a.cell_name,
         a.local_cell_id,
         phycellid,
