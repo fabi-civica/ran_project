@@ -2,9 +2,10 @@ version: 2
 
 sources:
   - name: alumno15
-    description: ""
+    description: "Bronze layer with raw OSS network, alarm, vendor and performance data."
     database: alumno15_dev_bronze
     schema: alumno15
+    tags: ["bronze", "oss", "raw"]
     tables:
       - name: raw_vendors
         description: ""

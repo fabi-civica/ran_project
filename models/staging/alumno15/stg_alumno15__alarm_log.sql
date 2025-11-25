@@ -18,7 +18,7 @@ renamed_alarm_log as (
 
     select
         {{ dbt_utils.generate_surrogate_key(['alarm_id']) }} as alarm_id,
-        {{ dbt_utils.generate_surrogate_key(['alarm_source']) }} as ne_id, -- es ne_id o bs_id
+        {{ dbt_utils.generate_surrogate_key(['alarm_source']) }} as bs_id,
         Associate_type::varchar(20) as associate_type,
         convert_timezone('Europe/Madrid',  coalesce(
             try_to_timestamp_ntz(regexp_replace(occurred_on_nt, ' DST$', ''), 'YYYY-MM-DD HH24:MI:SS'),

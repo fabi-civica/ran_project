@@ -38,13 +38,15 @@ models:
     relation: true
     columns: true
   +transient: false
+
   proyecto_fabi:
-    stagging:
+    staging:
       +materialized: view
       +database: alumno15_dev_silver
       +schema: stg
-      base:
-        +schema: base_try #esto para que es?
+      alumno15:
+        base:
+          +schema: stg_base
     marts:
       +materialized: table
       +database: alumno15_dev_gold
