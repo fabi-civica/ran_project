@@ -87,4 +87,29 @@ models:
 
       - name: duration_minutes
         description: "Duración de la alarma en minutos (solo cuando está cerrada)."
-      
+
+  - name: dim_alarm_type
+    columns:
+      - name: alarm_key
+        tests:
+          - not_null
+          - unique
+      - name: alarm_id_by_vendor
+        tests:
+          - not_null
+      - name: vendor_id
+        tests:
+          - not_null
+  
+  - name: fact_cell_traffic
+    columns:
+      - name: traffic_event_key
+        tests:
+          - not_null
+          - unique
+      - name: cell_key
+        tests:
+          - not_null
+      - name: measure_date_id
+        tests:
+          - not_null

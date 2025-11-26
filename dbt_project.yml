@@ -33,7 +33,7 @@ clean-targets: # directories to be removed by `dbt clean`
 # continue to be built as views. These settings can be overridden in the individual model files
 # using the `{{ config(...) }}` macro.
 vars:
-  'dbt_date:time_zone': 'Europe/Madrid'
+  'dbt_date:time_zone': 'Europe/Madrid' # esto cuando se usa?
 
 models:
   +persist_docs:
@@ -53,6 +53,9 @@ models:
       +materialized: table
       +database: alumno15_dev_gold
       +schema: marts
+      kpis:
+        +schema: kpis
 
-    #2del:
-    #  +enabled: false
+
+    2del:
+      +enabled: false

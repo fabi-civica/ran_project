@@ -1,11 +1,9 @@
-
+-- unique_key = 'alarm_id'     -- de cara a futuros incrementales / SCD2
 {{ config(
-    materialized = 'incremental',
-    incremental_strategy = 'merge',
-    unique_key = 'alarm_event_id'
+    materialized = 'incremental'
 ) }}
 
-with src as (
+with alarm_log  as (
 
     select
         *
@@ -27,35 +25,56 @@ dim_date as (
 
 ),
 
+dim_alarm as (
+
+    select
+        *
+    from {{ ref('dim_alarm_type') }}
+
+),
+
+dim_bs as (
+
+    select
+        *
+    from {{ ref('dim_bs') }}
+
+),
+
 final as (
 
     select
-        s.alarm_event_id,
-        s.alarm_id,
-        s.bs_id,
+        al.alarm_event_id,
+        da.alarm_id,
+        bs.bs_id,
         d_occ.date_id  as occurred_date_id,
         d_clr.date_id  as cleared_date_id,
-        s.log_serial_number,
-        s.associate_type,
-        s.location_descriptor,
-        s.location_information_raw,
-        s.occurred_on,
-        s.cleared_on,
-        s.received_on,
-        s.cleared_by_id,
-        s.is_cleared,
-        case
-            when s.is_cleared
-                then datediff('minute', s.occurred_on, s.cleared_on)
-            else null
-        end as duration_minutes,
-        s.datetime_row_loaded as fact_created_at
+        d_rec.date_id  as received_date_id,
+        al.log_serial_number,
+        al.location_descriptor,
+        al.location_information_raw,
+        al.associate_type,
+        1              as alarm_count,
+        al.is_cleared,
+        datediff('minutes', al.occurred_on, al.cleared_on)   as duration_to_solve_minutes,
+        datediff('minutes', al.occurred_on, al.received_on)  as time_to_receive_alarm_minutes,
+        al.occurred_on,
+        al.cleared_on,
+        al.received_on,
+        al.cleared_by_id,
+        al.datetime_row_loaded  as fact_created_at
 
-    from src s
+    from alarm_log al
+    left join dim_alarm da
+        on al.alarm_id = da.alarm_id
+    left join dim_bs bs
+        on al.bs_id = bs.bs_id
     left join dim_date d_occ
-        on d_occ.date_day = cast(s.occurred_on as date)
+        on date(al.occurred_on) = d_occ.date_day
     left join dim_date d_clr
-        on d_clr.date_day = cast(s.cleared_on as date)
+        on date(al.cleared_on)  = d_clr.date_day
+    left join dim_date d_rec
+        on date(al.received_on) = d_rec.date_day
 
 )
 
