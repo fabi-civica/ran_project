@@ -11,9 +11,9 @@ with source_raw_network_elements_info as (
 renamed_bs_software_version as (
 
     select
-        {{ dbt_utils.generate_surrogate_key(['version']) }} as soft_ver_id,
-        version as soft_ver,
-        'https://docs.google.com/software/' || REPLACE(version, ' ', '_') || '/edit?usp=drive_link' as soft_url,
+        {{ dbt_utils.generate_surrogate_key(['version']) }} as software_version_id,
+        version as software_version,
+        'https://docs.google.com/software/' || REPLACE(version, ' ', '_') || '/edit?usp=drive_link' as software_version_url,
         convert_timezone('Europe/Madrid', current_timestamp()) as datetime_row_loaded
     from source_raw_network_elements_info
 
