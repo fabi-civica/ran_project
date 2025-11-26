@@ -16,6 +16,7 @@ mod as (
     select
         convert_timezone('Europe/Madrid', to_timestamp(start_time, 'MM/DD/YYYY HH24:MI')) as measure_time,
         period_min::number(3,0) as measure_period,
+        ne_name,
         TRIM(SPLIT_PART(
                 SPLIT_PART(cell, 'Local Cell ID=', 2), 
                 ',', 1)) AS local_cell_id,
@@ -45,6 +46,14 @@ mod as (
 
 ),
 
+filtered as (
+
+    select *
+    from mod
+    where {{ same_vendor_cell('ne_name', 'cell_name') }}
+
+),
+
 renamed as (
 
     select
@@ -66,7 +75,7 @@ renamed as (
         l_cell_avail_dur_s,
         convert_timezone('Europe/Madrid', current_timestamp()) as datetime_row_loaded
 
-    from mod
+    from filtered
 
 )
 

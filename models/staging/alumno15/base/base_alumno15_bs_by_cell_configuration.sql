@@ -4,6 +4,7 @@
 with source as (
 
     select * from {{ source('alumno15', 'raw_bs_by_cell_config') }}
+    where {{ same_vendor_cell('node_name', 'cell_name') }}
 
 ),
 
@@ -21,7 +22,6 @@ renamed as (
         ulbandwidth::number(2,0) as bandwidth_id,
         cellactivestate::boolean as cell_active_by_config,
         txrxmode::number(2,0) as tx_rx_mode_id,
-        nbcellflag, -- cell_topology_type in base_alumno15_bs_by_cell_status
         tac::number(10,0) as tac,
         sectoreqmid as sector_eqm_id,
         convert_timezone('Europe/Madrid', TO_TIMESTAMP(datetime_loaded, 'MM/DD/YYYY HH24:MI')) as datetime_row_loaded
