@@ -4,6 +4,7 @@
 with source as (
 
     select * from {{ source('alumno15', 'raw_bs_by_cell_status') }}
+    where {{ same_vendor_cell('node_name', 'cell_name') }}
 
 ),
 
