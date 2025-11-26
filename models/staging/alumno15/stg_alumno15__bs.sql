@@ -26,6 +26,7 @@ renamed_bs_info as (
 
     select
         a.bs_id,
+        bs_name,
         b.ne_id,
         {{ dbt_utils.generate_surrogate_key(['ne_type', 'rat_tecnology']) }} as rat_id,
         base_station_id as bs_id_by_rat,
