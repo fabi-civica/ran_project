@@ -16,9 +16,9 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('dim_bs')
-              field: bs_id
-
+              arguments:
+                to: ref('dim_bs')
+                field: bs_id
       - name: cell_name
         description: "Nombre de la celda tal como aparece en el OSS."
         tests:
@@ -49,39 +49,39 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('dim_alarm_type')
-              field: alarm_id
-
+              arguments:
+                to: ref('dim_alarm_type')
+                field: alarm_id
       - name: bs_id
         description: "FK al nodo (dim_bs)."
         tests:
           - not_null
           - relationships:
-              to: ref('dim_bs')
-              field: bs_id
-
+              arguments:
+                to: ref('dim_bs')
+                field: bs_id
       - name: cell_id
         description: "FK a dim_cell, cuando la alarma está asociada a una celda concreta."
         tests:
           - relationships:
-              to: ref('dim_cell')
-              field: cell_id
-
+              arguments:
+                to: ref('dim_cell')
+                field: cell_id
       - name: occurred_date_id
         description: "Fecha de ocurrencia de la alarma (role-playing de dim_date)."
         tests:
           - not_null
           - relationships:
-              to: ref('dim_date')
-              field: date_id
-
+              arguments:
+                to: ref('dim_date')
+                field: date_id
       - name: cleared_date_id
         description: "Fecha de cierre de la alarma (nullable si sigue activa)."
         tests:
           - relationships:
-              to: ref('dim_date')
-              field: date_id
-
+              arguments:
+                to: ref('dim_date')
+                field: date_id
       - name: is_cleared
         description: "Flag que indica si la alarma está cerrada (true) o activa (false)."
 
@@ -100,7 +100,7 @@ models:
       - name: vendor_id
         tests:
           - not_null
-  
+
   - name: fact_cell_traffic
     columns:
       - name: traffic_event_key

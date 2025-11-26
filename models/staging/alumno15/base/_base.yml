@@ -1,155 +1,183 @@
+
 version: 2
 
 models:
-
+  
   - name: base_alumno15_bs_element_info
-    description: "Base Silver view with master data for Base Stations (BS) derived from RAW_NETWORK_ELEMENTS_INFO."
+    description: Base Silver view with master data for Base Stations (BS) derived from RAW_NETWORK_ELEMENTS_INFO.
     config:
-      tags: ["silver", "base", "bs"]
+      tags:
+        - silver
+        - base
+        - bs
     columns:
       - name: bs_id
-        description: "Surrogate key for the Base Station, generated from ne_name."
+        description: Surrogate key for the Base Station, generated from ne_name.
         tests:
           - not_null
           - unique
       - name: bs_name
-        description: "Base Station name as reported by OSS (ne_name)."
+        description: Base Station name as reported by OSS (ne_name).
         tests:
           - not_null
       - name: rat_tecnology
-        description: "Main radio access technology of the Base Station."
+        description: Main radio access technology of the Base Station.
       - name: vendor
-        description: "Vendor name of the Base Station."
+        description: Vendor name of the Base Station.
       - name: region
-        description: "Region where the Base Station is deployed."
+        description: Region where the Base Station is deployed.
       - name: city
-        description: "City where the Base Station is deployed."
+        description: City where the Base Station is deployed.
       - name: home_subnet
-        description: "Home subnet associated with the Base Station."
+        description: Home subnet associated with the Base Station.
       - name: datetime_row_loaded
-        description: "Timestamp when the record was created in the Silver layer."
-
+        description: Timestamp when the record was created in the Silver layer.
+  
   - name: base_alumno15_bs_by_cell_configuration
-    description: "Base Silver view with configuration parameters for each cell belonging to a Base Station."
+    description: Base Silver view with configuration parameters for each cell belonging to a Base Station.
     config:
-      tags: ["silver", "base", "cell"]
+      tags:
+        - silver
+        - base
+        - cell
     tests:
+      - dbt_expectations.expect_table_row_count_to_be_between:
+          arguments:
+            min_value: 1
       - same_vendor_cell:
-          node_column: node_name
-          cell_column: cell_name
+          arguments:
+            node_column: node_name
+            cell_column: cell_name
     columns:
       - name: cell_id
-        description: "Surrogate key for the cell, generated from cell_name."
+        description: Surrogate key for the cell, generated from cell_name.
         tests:
           - not_null
           - unique
       - name: bs_id
-        description: "Surrogate key of the Base Station that owns the cell."
+        description: Surrogate key of the Base Station that owns the cell.
         tests:
           - not_null
           - relationships:
-              to: ref('base_alumno15_bs_element_info')
-              field: bs_id
+              arguments:
+                to: ref('base_alumno15_bs_element_info')
+                field: bs_id
       - name: local_cell_id
-        description: "Local cell identifier within the Base Station."
+        description: Local cell identifier within the Base Station.
       - name: cell_name
-        description: "Cell name in OSS."
+        description: Cell name in OSS.
         tests:
           - not_null
       - name: phycellid
-        description: "Physical cell identifier."
+        description: Physical cell identifier.
       - name: freqband
-        description: "Frequency band used by the cell."
+        description: Frequency band used by the cell.
       - name: bandwidth_id
-        description: "Identifier for the configured bandwidth."
+        description: Identifier for the configured bandwidth.
       - name: tx_rx_mode_id
-        description: "Identifier for the TX/RX mode used by the cell."
+        description: Identifier for the TX/RX mode used by the cell.
       - name: tac
-        description: "Tracking Area Code associated with the cell."
+        description: Tracking Area Code associated with the cell.
       - name: cell_active_by_config
-        description: "Flag indicating if the cell is configured as active."
+        description: Flag indicating if the cell is configured as active.
       - name: datetime_row_loaded
-        description: "Timestamp when the record was created in the Silver layer."
+        description: Timestamp when the record was created in the Silver layer.
+  
+  - name: base_alumno15_bs_by_cell_status
+    description: Base Silver view with operational and administrative status for each cell.
+    config:
+      tags:
+        - silver
+        - base
+        - cell
+        - status
     tests:
       - dbt_expectations.expect_table_row_count_to_be_between:
-          min_value: 1
-
-  - name: base_alumno15_bs_by_cell_status
-    description: "Base Silver view with operational and administrative status for each cell."
-    config:
-      tags: ["silver", "base", "cell", "status"]
+          arguments:
+            min_value: 1
     columns:
       - name: cell_id
-        description: "Surrogate key for the cell, generated from cell_name."
+        description: Surrogate key for the cell, generated from cell_name.
         tests:
           - not_null
           - unique
           - relationships:
-              to: ref('base_alumno15_bs_by_cell_configuration')
-              field: cell_id
+              arguments:
+                to: ref('base_alumno15_bs_by_cell_configuration')
+                field: cell_id
       - name: bs_id
-        description: "Surrogate key of the Base Station that owns the cell."
+        description: Surrogate key of the Base Station that owns the cell.
         tests:
           - not_null
           - relationships:
-              to: ref('base_alumno15_bs_element_info')
-              field: bs_id
+              arguments:
+                to: ref('base_alumno15_bs_element_info')
+                field: bs_id
       - name: local_cell_id
-        description: "Local cell identifier within the Base Station."
+        description: Local cell identifier within the Base Station.
       - name: cell_name
-        description: "Cell name in OSS."
+        description: Cell name in OSS.
         tests:
           - not_null
       - name: admin_state
-        description: "Administrative state of the cell."
+        description: Administrative state of the cell.
       - name: op_state
-        description: "Operational state of the cell."
+        description: Operational state of the cell.
       - name: avai_state
-        description: "Availability state of the cell."
+        description: Availability state of the cell.
       - name: cell_topology_type
-        description: "Cell topology type (for example macro, micro, indoor)."
+        description: Cell topology type (for example macro, micro, indoor).
       - name: datetime_row_loaded
-        description: "Timestamp when the record was created in the Silver layer."
-    tests:
-      - dbt_expectations.expect_table_row_count_to_be_between:
-          min_value: 1
-
+        description: Timestamp when the record was created in the Silver layer.
+  
   - name: base_alumno15_bs_ethport
-    description: "Base Silver view with Ethernet port inventory and attributes for each Base Station."
+    description: Base Silver view with Ethernet port inventory and attributes for each Base Station.
     config:
-      tags: ["silver", "base", "bs", "ethport"]
+      tags:
+        - silver
+        - base
+        - bs
+        - ethport
     columns:
       - name: bs_id
-        description: "Surrogate key of the Base Station that owns the Ethernet port."
+        description: Surrogate key of the Base Station that owns the Ethernet port.
         tests:
           - not_null
           - relationships:
-              to: ref('base_alumno15_bs_element_info')
-              field: bs_id
+              arguments:
+                to: ref('base_alumno15_bs_element_info')
+                field: bs_id
       - name: ne_id
-        description: "Original NE identifier from the raw source."
+        description: Original NE identifier from the raw source.
       - name: cabinet_no
-        description: "Cabinet identifier where the board is installed."
+        description: Cabinet identifier where the board is installed.
       - name: subrack_no
-        description: "Subrack number within the cabinet."
+        description: Subrack number within the cabinet.
       - name: slot_no
-        description: "Slot number where the board is installed."
+        description: Slot number where the board is installed.
       - name: port_no
-        description: "Port number on the board."
+        description: Port number on the board.
       - name: port_status
-        description: "Operational status of the Ethernet port."
+        description: Operational status of the Ethernet port.
       - name: mtu
-        description: "Maximum Transmission Unit configured on the port."
+        description: Maximum Transmission Unit configured on the port.
       - name: local_negotiation_mode
-        description: "Negotiation mode configured on the local port."
+        description: Negotiation mode configured on the local port.
       - name: local_speed
-        description: "Negotiated or configured port speed."
+        description: Negotiated or configured port speed.
       - name: local_duplex
-        description: "Negotiated or configured duplex mode."
+        description: Negotiated or configured duplex mode.
       - name: datetime_row_loaded
-        description: "Timestamp when the record was created in the Silver layer."
+        description: Timestamp when the record was created in the Silver layer.
     tests:
       - dbt_expectations.expect_table_row_count_to_be_between:
-          min_value: 1
+          arguments:
+            min_value: 1
       - dbt_expectations.expect_compound_columns_to_be_unique:
-          column_list: ["bs_id", "cabinet_no", "subrack_no", "slot_no", "port_no"]
+          arguments:
+            column_list:
+              - bs_id
+              - cabinet_no
+              - subrack_no
+              - slot_no
+              - port_no
