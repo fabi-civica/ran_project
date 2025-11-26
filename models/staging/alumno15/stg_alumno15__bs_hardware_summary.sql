@@ -17,7 +17,7 @@ renamed_bs_hardware_summary as (
         ubbp_count::NUMBER(1,0) as ubbp_count,
         lbbp_count::NUMBER(1,0) as lbbp_count,
         mrru_count::NUMBER(2,0) as mrru_count,
-        lrru_count::NUMBER(2,0) as mrru_count,
+        lrru_count::NUMBER(2,0) as lrru_count,
         bbu3900_count::NUMBER(1,0) as bbu3900_count,
         bbu5900_count::NUMBER(1,0) as bbu5900_count,
         convert_timezone('Europe/Madrid', to_timestamp(datetime_loaded, 'MM/DD/YYYY HH24:MI')) as datetime_row_loaded

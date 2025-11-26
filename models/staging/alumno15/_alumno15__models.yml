@@ -1,676 +1,294 @@
 version: 2
 
-sources:
-  - name: dbt_fabi_stg_try
-    description: ""
-    database: alumno15_dev_silver
-    schema: dbt_fabi_stg_try
-    tables:
-      - name: base_alumno15_bs_by_cell_configuration
-        description: ""
-        columns:
-          - name: bs_id
-            data_type: varchar
-            description: ""
-          - name: local_cell_id
-            data_type: number
-            description: ""
-          - name: cell_id
-            data_type: varchar
-            description: ""
-          - name: cell_name
-            data_type: varchar
-            description: ""
-          - name: local_cell_id_2
-            data_type: number
-            description: ""
-          - name: phycellid
-            data_type: number
-            description: ""
-          - name: rootsequenceidx
-            data_type: number
-            description: ""
-          - name: freqband_id
-            data_type: number
-            description: ""
-          - name: dlearfcn
-            data_type: number
-            description: ""
-          - name: bandwidth_id
-            data_type: number
-            description: ""
-          - name: cell_active_by_config
-            data_type: boolean
-            description: ""
-          - name: tx_rx_mode_id
-            data_type: number
-            description: ""
-          - name: nbcellflag
-            data_type: number
-            description: ""
-          - name: tac
-            data_type: number
-            description: ""
-          - name: sector_eqm_id
-            data_type: number
-            description: ""
-          - name: datetime_row_loaded
-            data_type: timestamp_tz
-            description: ""
+models:
 
-      - name: base_alumno15_bs_by_cell_status
-        description: ""
-        columns:
-          - name: bs_id
-            data_type: varchar
-            description: ""
-          - name: local_cell_id
-            data_type: number
-            description: ""
-          - name: cell_id
-            data_type: varchar
-            description: ""
-          - name: cell_name
-            data_type: varchar
-            description: ""
-          - name: cell_status
-            data_type: varchar
-            description: ""
-          - name: reason_for_latest_state_change
-            data_type: varchar
-            description: ""
-          - name: cell_latest_setup_time
-            data_type: timestamp_tz
-            description: ""
-          - name: cell_latest_setup_operate_type
-            data_type: varchar
-            description: ""
-          - name: cell_latest_remove_time
-            data_type: timestamp_tz
-            description: ""
-          - name: cell_latest_remove_operate_type
-            data_type: varchar
-            description: ""
-          - name: primary_bbp_information
-            data_type: varchar
-            description: ""
-          - name: cell_topology_type
-            data_type: varchar
-            description: ""
-          - name: maximum_transmit_power_0_1dbm
-            data_type: number
-            description: ""
-          - name: cell_plmn_info
-            data_type: varchar
-            description: ""
-          - name: datetime_row_loaded
-            data_type: timestamp_tz
-            description: ""
+  - name: stg_alumno15__bs
+    description: "Silver staging model providing a unified and cleaned view of Base Stations (BS), combining metadata and Ethernet port details."
+    config:
+      tags: ["silver", "stg", "bs"]
+    columns:
+      - name: bs_id
+        description: "Surrogate key for the Base Station."
+        tests:
+          - not_null
+          - unique
+      - name: bs_name
+        description: "Base Station name as reported in OSS."
+      - name: vendor
+        description: "Vendor associated with the Base Station."
+      - name: region
+        description: "Region where the Base Station is deployed."
+      - name: city
+        description: "City where the Base Station is deployed."
+      - name: number_of_eth_ports
+        description: "Total number of Ethernet ports detected for the BS."
+    tests:
+      - dbt_expectations.expect_table_row_count_to_be_between:
+          min_value: 1
 
-      - name: base_alumno15_bs_element_info
-        description: ""
-        columns:
-          - name: bs_id
-            data_type: varchar
-            description: ""
-          - name: bs_name
-            data_type: varchar
-            description: ""
-          - name: ne_type
-            data_type: varchar
-            description: ""
-          - name: rat_tecnology
-            data_type: varchar
-            description: ""
-          - name: om_ip_address
-            data_type: varchar
-            description: ""
-          - name: version
-            data_type: varchar
-            description: ""
-          - name: vendor_name
-            data_type: varchar
-            description: ""
-          - name: description
-            data_type: varchar
-            description: ""
-          - name: ne_connection_status
-            data_type: varchar
-            description: ""
-          - name: base_station_id
-            data_type: varchar
-            description: ""
-          - name: base_station_rnc
-            data_type: varchar
-            description: ""
-          - name: home_subnet
-            data_type: varchar
-            description: ""
-          - name: ne_maintenance_mode
-            data_type: varchar
-            description: ""
-          - name: creation_time
-            data_type: varchar
-            description: ""
-          - name: first_connection_time
-            data_type: varchar
-            description: ""
-          - name: datetime_row_loaded
-            data_type: timestamp_tz
-            description: ""
+  - name: stg_alumno15__cell
+    description: "Silver staging model providing standardized and enriched cell information including configuration, status and Base Station reference."
+    config:
+      tags: ["silver", "stg", "cell"]
+    columns:
+      - name: cell_id
+        description: "Surrogate key for the cell, generated from cell_name."
+        tests:
+          - not_null
+          - unique
+      - name: bs_id
+        description: "Surrogate key for the Base Station that owns the cell."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_alumno15__bs')
+              field: bs_id
+      - name: cell_name
+        description: "Cell name in OSS."
+      - name: phycellid
+        description: "Physical Cell ID."
+      - name: freqband
+        description: "Frequency band of the cell."
+    tests:
+      - dbt_expectations.expect_table_row_count_to_be_between:
+          min_value: 1
 
-      - name: base_alumno15_bs_ethport
-        description: ""
-        columns:
-          - name: bs_id
-            data_type: varchar
-            description: ""
-          - name: ne_id
-            data_type: number
-            description: ""
-          - name: cabinet_no
-            data_type: number
-            description: ""
-          - name: subrack_no
-            data_type: number
-            description: ""
-          - name: slot_no
-            data_type: number
-            description: ""
-          - name: port_no
-            data_type: number
-            description: ""
-          - name: port_attribute
-            data_type: varchar
-            description: ""
-          - name: port_status
-            data_type: varchar
-            description: ""
-          - name: mtu
-            data_type: number
-            description: ""
-          - name: local_negotiation_mode
-            data_type: varchar
-            description: ""
-          - name: local_speed
-            data_type: varchar
-            description: ""
-          - name: local_duplex
-            data_type: varchar
-            description: ""
-          - name: datetime_row_loaded
-            data_type: timestamp_tz
-            description: ""
+  - name: stg_alumno15__bs_rat
+    description: "Silver staging model with RAT (Radio Access Technology) attributes per Base Station."
+    config:
+      tags: ["silver", "stg", "bs", "rat"]
+    columns:
+      - name: bs_id
+        description: "Base Station surrogate key."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_alumno15__bs')
+              field: bs_id
+      - name: rat_tecnology
+        description: "Main RAT technology for the BS."
+    tests:
+      - dbt_expectations.expect_table_row_count_to_be_between:
+          min_value: 1
 
-      - name: stg_alumno15__alarm_log
-        description: ""
-        columns:
-          - name: alarm_id
-            data_type: varchar
-            description: ""
-          - name: ne_id
-            data_type: varchar
-            description: ""
-          - name: associate_type
-            data_type: varchar
-            description: ""
-          - name: occurred_on
-            data_type: timestamp_tz
-            description: ""
-          - name: cleared_on
-            data_type: timestamp_tz
-            description: ""
-          - name: cleared_by_id
-            data_type: varchar
-            description: ""
-          - name: is_cleared
-            data_type: boolean
-            description: ""
-          - name: log_serial_number
-            data_type: number
-            description: ""
-          - name: received_on
-            data_type: timestamp_tz
-            description: ""
+  - name: stg_alumno15__board_power_consumption
+    description: "Silver staging model that have the power consumption by board and vendor reference data."
+    config:
+      tags: ["silver", "stg", "bs", "power"]
+    columns:
+      - name: bs_id
+        description: "Surrogate key for the Base Station."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_alumno15__bs')
+              field: bs_id
+      - name: total_power_w
+        description: "Total estimated power consumption of the Base Station in watts."
+        tests:
+          - not_null
+    tests:
+      - dbt_expectations.expect_table_row_count_to_be_between:
+          min_value: 1
 
-      - name: stg_alumno15__alarm_log_cleared_by
-        description: ""
-        columns:
-          - name: cleared_by_id
-            data_type: varchar
-            description: ""
-          - name: cleared_by
-            data_type: varchar
-            description: ""
+  - name: stg_alumno15__bs_hardware_summary
+    description: "Silver staging model summarizing board counts and hardware inventory per Base Station."
+    config:
+      tags: ["silver", "stg", "bs"]
+    columns:
+      - name: bs_id
+        description: "Base Station surrogate key."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_alumno15__bs')
+              field: bs_id
+      - name: total_boards
+        description: "Number of boards installed in the Base Station."
+    tests:
+      - dbt_expectations.expect_table_row_count_to_be_between:
+          min_value: 1
 
-      - name: stg_alumno15__alarms_details
-        description: ""
-        columns:
-          - name: alarm_id
-            data_type: varchar
-            description: ""
-          - name: severity
-            data_type: varchar
-            description: ""
-          - name: alarm_name
-            data_type: varchar
-            description: ""
-          - name: source_system
-            data_type: varchar
-            description: ""
-          - name: alarm_type
-            data_type: varchar
-            description: ""
-          - name: auto_clear
-            data_type: varchar
-            description: ""
-          - name: object_type
-            data_type: varchar
-            description: ""
+  - name: stg_alumno15__bs_home_subnet
+    description: "Silver staging model exposing home subnet and IP addressing metadata for the Base Station."
+    config:
+      tags: ["silver", "stg", "bs"]
+    columns:
+      - name: bs_id
+        description: "Base Station surrogate key."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_alumno15__bs')
+              field: bs_id
+      - name: home_subnet
+        description: "Subnet associated with the Base Station."
+    tests:
+      - dbt_expectations.expect_table_row_count_to_be_between:
+          min_value: 1
 
-      - name: stg_alumno15__bs
-        description: ""
-        columns:
-          - name: bs_id
-            data_type: varchar
-            description: ""
-          - name: ne_id
-            data_type: number
-            description: ""
-          - name: rat_id
-            data_type: varchar
-            description: ""
-          - name: bs_id_by_rat
-            data_type: varchar
-            description: ""
-          - name: om_ip_address
-            data_type: varchar
-            description: ""
-          - name: software_version_id
-            data_type: varchar
-            description: ""
-          - name: is_connected
-            data_type: boolean
-            description: ""
-          - name: vendor_id
-            data_type: varchar
-            description: ""
-          - name: rnc_by_rat
-            data_type: varchar
-            description: ""
-          - name: home_subnet_id
-            data_type: varchar
-            description: ""
-          - name: is_enabled
-            data_type: boolean
-            description: ""
-          - name: creation_time
-            data_type: timestamp_tz
-            description: ""
-          - name: first_connection_time
-            data_type: timestamp_tz
-            description: ""
-          - name: datetime_row_loaded
-            data_type: timestamp_tz
-            description: ""
+  - name: stg_alumno15__bs_software_version
+    description: "Silver staging model exposing OS/software version for the Base Station."
+    config:
+      tags: ["silver", "stg", "bs", "software"]
+    columns:
+      - name: bs_id
+        description: "Base Station surrogate key."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_alumno15__bs')
+              field: bs_id
+      - name: version
+        description: "Software version of the Base Station."
+    tests:
+      - dbt_expectations.expect_table_row_count_to_be_between:
+          min_value: 1
 
-      - name: stg_alumno15__bs_ethport_details
-        description: ""
-        columns:
-          - name: bs_id
-            data_type: varchar
-            description: ""
-          - name: cabinet_no
-            data_type: varchar
-            description: ""
-          - name: subrack_no
-            data_type: varchar
-            description: ""
-          - name: slot_no
-            data_type: varchar
-            description: ""
-          - name: port_no
-            data_type: varchar
-            description: ""
-          - name: port_attribute
-            data_type: varchar
-            description: ""
-          - name: mtu
-            data_type: varchar
-            description: ""
-          - name: local_negotiation_mode
-            data_type: varchar
-            description: ""
-          - name: local_speed
-            data_type: varchar
-            description: ""
-          - name: local_duplex
-            data_type: varchar
-            description: ""
-          - name: datetime_row_loaded
-            data_type: varchar
-            description: ""
+  - name: stg_alumno15__bs_vendors
+    description: "Silver staging model joining Base Stations with vendor reference information."
+    config:
+      tags: ["silver", "stg", "bs", "vendors"]
+    columns:
+      - name: bs_id
+        description: "Base Station surrogate key."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_alumno15__bs')
+              field: bs_id
+      - name: vendor_name
+        description: "Vendor associated with the Base Station."
+        tests:
+          - not_null
+    tests:
+      - dbt_expectations.expect_table_row_count_to_be_between:
+          min_value: 1
 
-      - name: stg_alumno15__bs_hardware_power_consumption
-        description: ""
-        columns:
-          - name: board_id
-            data_type: varchar
-            description: ""
-          - name: vendor_id
-            data_type: varchar
-            description: ""
-          - name: board_name
-            data_type: varchar
-            description: ""
-          - name: consumo_minimo_w
-            data_type: number
-            description: ""
-          - name: consumo_medio_w
-            data_type: number
-            description: ""
-          - name: consumo_tipico_w
-            data_type: number
-            description: ""
-          - name: datetime_row_loaded
-            data_type: timestamp_tz
-            description: ""
+  - name: stg_alumno15__bs_ethport_details
+    description: "Silver staging model providing a cleaned and enriched list of Ethernet ports per Base Station."
+    config:
+      tags: ["silver", "stg", "bs", "ethport"]
+    columns:
+      - name: bs_id
+        description: "Base Station surrogate key."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_alumno15__bs')
+              field: bs_id
+      - name: port_no
+        description: "Ethernet port number."
+        tests:
+          - not_null
+    tests:
+      - dbt_expectations.expect_compound_columns_to_be_unique:
+          column_list: ["bs_id", "port_no"]
 
-      - name: stg_alumno15__bs_hardware_summary
-        description: ""
-        columns:
-          - name: bs_id
-            data_type: varchar
-            description: ""
-          - name: fan_count
-            data_type: number
-            description: ""
-          - name: upeu_count
-            data_type: number
-            description: ""
-          - name: umpt_count
-            data_type: number
-            description: ""
-          - name: ubbp_count
-            data_type: number
-            description: ""
-          - name: lbbp_count
-            data_type: number
-            description: ""
-          - name: mrru_count
-            data_type: number
-            description: ""
-          - name: mrru_count_2
-            data_type: number
-            description: ""
-          - name: bbu3900_count
-            data_type: number
-            description: ""
-          - name: bbu5900_count
-            data_type: number
-            description: ""
-          - name: datetime_row_loaded
-            data_type: timestamp_tz
-            description: ""
+  - name: stg_alumno15__alarm_log
+    description: "Silver staging model standardizing raw alarm events from Base Stations."
+    config:
+      tags: ["silver", "stg", "alarm"]
+    columns:
+      - name: alarm_id
+        description: "Alarm identifier assigned by OSS."
+        tests:
+          - not_null
+      - name: ne_name
+        description: "Network element where the alarm occurred."
+        tests:
+          - not_null
+      - name: occurred_on_nt
+        description: "Timestamp when the alarm occurred."
+        tests:
+          - not_null
+      - name: location_information_raw
+        tests:
+          - not_null
+      - name: location_descriptor
+        tests:
+          - not_null:
+              config:
+                severity: warn
+      
+    tests:
+      - dbt_expectations.expect_table_row_count_to_be_between:
+          min_value: 1
 
-      - name: stg_alumno15__bs_home_subnet
-        description: ""
-        columns:
-          - name: home_subnet_id
-            data_type: varchar
-            description: ""
-          - name: home_subnet
-            data_type: varchar
-            description: ""
-          - name: root_subnet
-            data_type: varchar
-            description: ""
-          - name: region_subnet
-            data_type: varchar
-            description: ""
-          - name: sub_region_subnet
-            data_type: varchar
-            description: ""
-          - name: integrated_subnet
-            data_type: varchar
-            description: ""
-          - name: datetime_row_loaded
-            data_type: timestamp_tz
-            description: ""
+  - name: stg_alumno15__alarm_log_cleared_by
+    description: "Silver staging model linking alarm events to the operator or process that cleared them."
+    config:
+      tags: ["silver", "stg", "alarm"]
+    columns:
+      - name: alarm_id
+        description: "Alarm identifier used to match with raw alarm logs."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_alumno15__alarm_log')
+              field: alarm_id
+      - name: cleared_by
+        description: "User or system responsible for clearing the alarm."
+    tests:
+      - dbt_expectations.expect_table_row_count_to_be_between:
+          min_value: 1
 
-      - name: stg_alumno15__bs_rat
-        description: ""
-        columns:
-          - name: rat_id
-            data_type: varchar
-            description: ""
-          - name: bs_type
-            data_type: varchar
-            description: ""
-          - name: rat_tecnology
-            data_type: varchar
-            description: ""
-          - name: is_gsm
-            data_type: boolean
-            description: ""
-          - name: is_umts
-            data_type: boolean
-            description: ""
-          - name: is_lte
-            data_type: boolean
-            description: ""
-          - name: is_nr
-            data_type: boolean
-            description: ""
-          - name: datetime_row_loaded
-            data_type: timestamp_tz
-            description: ""
+  - name: stg_alumno15__alarms_details
+    description: "Silver staging model containing static reference information about alarm types, categories and severities."
+    config:
+      tags: ["silver", "stg", "alarm", "reference"]
+    columns:
+      - name: alarm_number
+        description: "Alarm type identifier."
+        tests:
+          - not_null
+          - unique
+      - name: severity
+        description: "Severity assigned to this alarm type."
+    tests:
+      - dbt_expectations.expect_table_row_count_to_be_between:
+          min_value: 1
 
-      - name: stg_alumno15__bs_software_version
-        description: ""
-        columns:
-          - name: soft_ver_id
-            data_type: varchar
-            description: ""
-          - name: soft_ver
-            data_type: varchar
-            description: ""
-          - name: soft_url
-            data_type: varchar
-            description: ""
-          - name: datetime_row_loaded
-            data_type: timestamp_tz
-            description: ""
+  - name: stg_alumno15__statistics_rrc_rab
+    description: "Silver staging model with RRC/RAB performance statistics for each cell and time interval."
+    config:
+      tags: ["silver", "stg", "stats"]
+    columns:
+      - name: cell_id
+        description: "Cell surrogate key referencing the cell dimension."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_alumno15__cell')
+              field: cell_id
+      - name: period_start
+        description: "Start timestamp of the statistics interval."
+        tests:
+          - not_null
+      - name: rrc_requests
+        description: "Number of RRC connection requests."
+    tests:
+      - dbt_expectations.expect_compound_columns_to_be_unique:
+          column_list: ["cell_id", "period_start"]
 
-      - name: stg_alumno15__bs_vendors
-        description: ""
-        columns:
-          - name: vendor_id
-            data_type: varchar
-            description: ""
-          - name: vendor_name
-            data_type: varchar
-            description: ""
-          - name: tel_soporte
-            data_type: varchar
-            description: ""
-          - name: contacto
-            data_type: varchar
-            description: ""
-          - name: tel_contacto
-            data_type: varchar
-            description: ""
-          - name: correo_contacto
-            data_type: varchar
-            description: ""
-
-      - name: stg_alumno15__cell
-        description: ""
-        columns:
-          - name: cell_id
-            data_type: varchar
-            description: ""
-          - name: bs_id
-            data_type: varchar
-            description: ""
-          - name: local_cell_id
-            data_type: number
-            description: ""
-          - name: cell_name
-            data_type: varchar
-            description: ""
-          - name: local_cell_id_2
-            data_type: number
-            description: ""
-          - name: phycellid
-            data_type: number
-            description: ""
-          - name: rootsequenceidx
-            data_type: number
-            description: ""
-          - name: freqband_id
-            data_type: number
-            description: ""
-          - name: dlearfcn
-            data_type: number
-            description: ""
-          - name: bandwidth_id
-            data_type: number
-            description: ""
-          - name: cell_active_by_config
-            data_type: boolean
-            description: ""
-          - name: tx_rx_mode_id
-            data_type: number
-            description: ""
-          - name: tac
-            data_type: number
-            description: ""
-          - name: sector_eqm_id
-            data_type: number
-            description: ""
-          - name: cell_status
-            data_type: varchar
-            description: ""
-          - name: reason_for_latest_state_change
-            data_type: varchar
-            description: ""
-          - name: cell_latest_setup_time
-            data_type: timestamp_tz
-            description: ""
-          - name: cell_latest_setup_operate_type
-            data_type: varchar
-            description: ""
-          - name: cell_latest_remove_time
-            data_type: timestamp_tz
-            description: ""
-          - name: cell_latest_remove_operate_type
-            data_type: varchar
-            description: ""
-          - name: primary_bbp_information
-            data_type: varchar
-            description: ""
-          - name: cell_topology_type
-            data_type: varchar
-            description: ""
-          - name: maximum_transmit_power_0_1dbm
-            data_type: number
-            description: ""
-          - name: cell_plmn_info
-            data_type: varchar
-            description: ""
-          - name: datetime_row_loaded
-            data_type: timestamp_tz
-            description: ""
-
-      - name: stg_alumno15__statistics_rrc_rab
-        description: ""
-        columns:
-          - name: measure_time
-            data_type: timestamp_tz
-            description: ""
-          - name: measure_period
-            data_type: number
-            description: ""
-          - name: local_cell_id
-            data_type: varchar
-            description: ""
-          - name: cell_name
-            data_type: varchar
-            description: ""
-          - name: l_rrc_connreq_att
-            data_type: varchar
-            description: ""
-          - name: l_rrc_connreq_succ
-            data_type: varchar
-            description: ""
-          - name: l_rrc_setupfail_rej
-            data_type: varchar
-            description: ""
-          - name: l_rrc_setupfail_resfail
-            data_type: varchar
-            description: ""
-          - name: l_erab_failest_mme
-            data_type: varchar
-            description: ""
-          - name: l_erab_abnormrel_other
-            data_type: varchar
-            description: ""
-          - name: l_erab_abnormrel_radio
-            data_type: varchar
-            description: ""
-          - name: l_erab_abnormrel_mme
-            data_type: varchar
-            description: ""
-          - name: l_erab_abnormrel
-            data_type: varchar
-            description: ""
-          - name: l_erab_rel_mme
-            data_type: varchar
-            description: ""
-          - name: l_erab_normrel
-            data_type: varchar
-            description: ""
-          - name: l_cell_avail_dur_s
-            data_type: varchar
-            description: ""
-
-      - name: stg_alumno15__statistics_traffic
-        description: ""
-        columns:
-          - name: measure_time
-            data_type: timestamp_tz
-            description: ""
-          - name: measure_period
-            data_type: number
-            description: ""
-          - name: local_cell_id
-            data_type: varchar
-            description: ""
-          - name: cell_name
-            data_type: varchar
-            description: ""
-          - name: rb_utilizing_rate_dl_pct
-            data_type: varchar
-            description: ""
-          - name: erab_estab_succ_rate_pct
-            data_type: varchar
-            description: ""
-          - name: call_setup_succ_rate_pct
-            data_type: varchar
-            description: ""
-          - name: cell_dl_avg_thp_kbps
-            data_type: varchar
-            description: ""
-          - name: cell_ul_avg_thp_kbps
-            data_type: varchar
-            description: ""
-          - name: dl_cell_thp_mbps
-            data_type: varchar
-            description: ""
-          - name: dl_user_thp_mbps
-            data_type: varchar
-            description: ""
-          - name: trafico_dl
-            data_type: varchar
-            description: ""
+  - name: stg_alumno15__statistics_traffic
+    description: "Silver staging model with traffic and throughput performance statistics for each cell and time interval."
+    config:
+      tags: ["silver", "stg", "stats"]
+    columns:
+      - name: cell_id
+        description: "Cell surrogate key referencing the cell model."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_alumno15__cell')
+              field: cell_id
+      - name: period_start
+        description: "Start timestamp of the statistics interval."
+        tests:
+          - not_null
+      - name: dl_cell_thp_mbps
+        description: "Downlink cell throughput in Mbps (averaged over the period)."
+    tests:
+      - dbt_expectations.expect_compound_columns_to_be_unique:
+          column_list: ["cell_id", "period_start"]

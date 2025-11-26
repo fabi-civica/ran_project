@@ -11,8 +11,14 @@ source_base_alumno15_bs_ethport as (
 
     select distinct
         bs_id,
-        ne_id
+        ne_id,
+        max(case when port_attribute = 'Fiber'   then 1 else 0 end) as has_optical_port,
+        max(case when port_attribute = 'Copper'  then 1 else 0 end) as has_electrical_port
     from {{ ref('base_alumno15_bs_ethport') }}
+    where port_status = 'Up'
+    group by
+        bs_id,
+        ne_id
 
 ),
 
@@ -20,7 +26,7 @@ renamed_bs_info as (
 
     select
         a.bs_id,
-        ne_id,
+        b.ne_id,
         {{ dbt_utils.generate_surrogate_key(['ne_type', 'rat_tecnology']) }} as rat_id,
         base_station_id as bs_id_by_rat,
         om_ip_address,
@@ -39,6 +45,18 @@ renamed_bs_info as (
             try_to_timestamp_ntz(regexp_replace(first_connection_time, ' DST$', ''), 'YYYY-MM-DD HH24:MI:SS'),
             try_to_timestamp_ntz(first_connection_time, 'MM/DD/YYYY HH24:MI'),
             to_timestamp_ntz('2000-01-01 00:01', 'YYYY-MM-DD HH24:MI'))) as first_connection_time,
+        coalesce(b.has_optical_port,    0) as has_optical_port,
+        coalesce(b.has_electrical_port, 0) as has_electrical_port,
+        case
+            when coalesce(b.has_optical_port, 0) = 1
+             and coalesce(b.has_electrical_port, 0) = 1
+                then 'both'
+            when coalesce(b.has_optical_port, 0) = 1
+                then 'optical_only'
+            when coalesce(b.has_electrical_port, 0) = 1
+                then 'electrical_only'
+            else 'none'
+        end as port_profile,
         datetime_row_loaded
 
     from source_base_alumno15_bs_element_info as a
