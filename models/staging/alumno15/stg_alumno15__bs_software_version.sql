@@ -1,3 +1,4 @@
+
 {{ config(materialized='view') }}
 
 with source_raw_network_elements_info as (
