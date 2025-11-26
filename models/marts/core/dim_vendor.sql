@@ -15,9 +15,6 @@ select
 
     vendor_id,
     vendor_name,
-    support_tel,
-    contact_name,
-    contact_tel,
     datetime_row_loaded as dim_created_at
 
 from vendors

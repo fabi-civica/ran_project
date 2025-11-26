@@ -1,0 +1,115 @@
+version: 2
+
+models:
+
+  - name: dim_cell
+    description: "Dimensión de celdas radio (LTE/NR/...). 1 fila por celda lógica."
+    columns:
+      - name: cell_id
+        description: "Surrogate key de la celda."
+        tests:
+          - not_null
+          - unique
+
+      - name: bs_id
+        description: "FK al nodo (dim_bs)."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_bs')
+              field: bs_id
+
+      - name: cell_name
+        description: "Nombre de la celda tal como aparece en el OSS."
+        tests:
+          - not_null
+
+      - name: cell_status
+        description: "Estado operativo de la celda (UP, DOWN, etc.)."
+
+      - name: freqband_id
+        description: "Identificador de banda de frecuencia."
+      - name: bandwidth_id
+        description: "Identificador de ancho de banda."
+
+      - name: dim_created_at
+        description: "Timestamp de carga en la dimensión celda."
+
+  - name: fact_alarms
+    description: "Tabla de hechos de eventos de alarma RAN/OSS. 1 fila por evento de alarma."
+    columns:
+      - name: alarm_event_id
+        description: "Surrogate key del evento de alarma."
+        tests:
+          - not_null
+          - unique
+
+      - name: alarm_id
+        description: "FK a dim_alarm_type (tipo de alarma)."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_alarm_type')
+              field: alarm_id
+
+      - name: bs_id
+        description: "FK al nodo (dim_bs)."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_bs')
+              field: bs_id
+
+      - name: cell_id
+        description: "FK a dim_cell, cuando la alarma está asociada a una celda concreta."
+        tests:
+          - relationships:
+              to: ref('dim_cell')
+              field: cell_id
+
+      - name: occurred_date_id
+        description: "Fecha de ocurrencia de la alarma (role-playing de dim_date)."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_date')
+              field: date_id
+
+      - name: cleared_date_id
+        description: "Fecha de cierre de la alarma (nullable si sigue activa)."
+        tests:
+          - relationships:
+              to: ref('dim_date')
+              field: date_id
+
+      - name: is_cleared
+        description: "Flag que indica si la alarma está cerrada (true) o activa (false)."
+
+      - name: duration_minutes
+        description: "Duración de la alarma en minutos (solo cuando está cerrada)."
+
+  - name: dim_alarm_type
+    columns:
+      - name: alarm_key
+        tests:
+          - not_null
+          - unique
+      - name: alarm_id_by_vendor
+        tests:
+          - not_null
+      - name: vendor_id
+        tests:
+          - not_null
+  
+  - name: fact_cell_traffic
+    columns:
+      - name: traffic_event_key
+        tests:
+          - not_null
+          - unique
+      - name: cell_key
+        tests:
+          - not_null
+      - name: measure_date_id
+        tests:
+          - not_null
