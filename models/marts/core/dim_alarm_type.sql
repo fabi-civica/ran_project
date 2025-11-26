@@ -11,6 +11,15 @@ with alarm_details as (
 
 ),
 
+vendors as (
+
+    select
+        vendor_id,
+        vendor_name
+    from {{ ref('dim_vendor') }}
+
+),
+
 dedup as (
     select
         *,
