@@ -1,22 +1,23 @@
 version: 2
+
 models:
+
   - name: stg_alumno15__bs
     description: Silver staging model providing a unified and cleaned view of Base Stations (BS), combining metadata and Ethernet port details.
     config:
-      tags:
-        - silver
-        - stg
-        - bs
+      tags: [silver, stg, bs]
     columns:
       - name: bs_id
-        description: Surrogate key for the Base Station.
+        description: Surrogate key for the Base Station, generated from bs_name.
         tests:
           - not_null
           - unique
       - name: bs_name
         description: Base Station name as reported in OSS.
+        tests:
+          - not_null
       - name: vendor
-        description: Vendor associated with the Base Station.
+        description: Vendor associated with the Base Station (raw name from OSS).
       - name: region
         description: Region where the Base Station is deployed.
       - name: city
@@ -27,13 +28,11 @@ models:
       - dbt_expectations.expect_table_row_count_to_be_between:
           arguments:
             min_value: 1
+
   - name: stg_alumno15__cell
     description: Silver staging model providing standardized and enriched cell information including configuration, status and Base Station reference.
     config:
-      tags:
-        - silver
-        - stg
-        - cell
+      tags: [silver, stg, cell]
     columns:
       - name: cell_id
         description: Surrogate key for the cell, generated from cell_name.
@@ -50,69 +49,87 @@ models:
                 field: bs_id
       - name: cell_name
         description: Cell name in OSS.
+        tests:
+          - not_null
       - name: phycellid
         description: Physical Cell ID.
       - name: freqband
         description: Frequency band of the cell.
+      - name: bandwidth_id
+        description: Huawei bandwidth code for the cell (natural key used to derive bandwidth configuration).
+      - name: tx_rx_mode_id
+        description: Huawei TX/RX mode code for the cell (natural key used to derive TX/RX configuration).
     tests:
       - dbt_expectations.expect_table_row_count_to_be_between:
           arguments:
             min_value: 1
+
   - name: stg_alumno15__bs_rat
-    description: Silver staging model with RAT (Radio Access Technology) attributes per Base Station.
+    description: Silver staging model with RAT (Radio Access Technology) reference per BS type.
     config:
-      tags:
-        - silver
-        - stg
-        - bs
-        - rat
+      tags: [silver, stg, bs, rat]
     columns:
-      - name: bs_id
-        description: Base Station surrogate key.
+      - name: rat_id
+        description: Surrogate key for the RAT / BS type combination.
         tests:
           - not_null
-          - relationships:
-              arguments:
-                to: ref('stg_alumno15__bs')
-                field: bs_id
-      - name: rat_tecnology
-        description: Main RAT technology for the BS.
+          - unique
+      - name: bs_type
+        description: Network element type (e.g. eNodeB, gNodeB) as reported in OSS.
+        tests:
+          - not_null
+      - name: rat_technology
+        description: Supported RATs (e.g. GSM, UMTS, LTE, NR) encoded as text.
+        tests:
+          - not_null
+      - name: is_gsm
+        description: Flag indicating whether the BS supports GSM (2G).
+      - name: is_umts
+        description: Flag indicating whether the BS supports UMTS (3G).
+      - name: is_lte
+        description: Flag indicating whether the BS supports LTE (4G).
+      - name: is_nr
+        description: Flag indicating whether the BS supports NR (5G).
     tests:
       - dbt_expectations.expect_table_row_count_to_be_between:
           arguments:
             min_value: 1
+
   - name: stg_alumno15__board_power_consumption
-    description: Silver staging model that have the power consumption by board and vendor reference data.
+    description: Silver staging model that contains power consumption reference data per board and vendor.
     config:
-      tags:
-        - silver
-        - stg
-        - bs
-        - power
+      tags: [silver, stg, bs, power]
     columns:
-      - name: bs_id
-        description: Surrogate key for the Base Station.
+      - name: board_id
+        description: Surrogate key for the board type.
         tests:
           - not_null
-          - relationships:
-              arguments:
-                to: ref('stg_alumno15__bs')
-                field: bs_id
-      - name: total_power_w
-        description: Total estimated power consumption of the Base Station in watts.
+          - unique
+      - name: vendor_id
+        description: Surrogate key for the vendor providing this board.
+        tests:
+          - not_null
+      - name: board_name
+        description: Board name / type as reported in the reference table.
+        tests:
+          - not_null
+      - name: consumo_minimo_w
+        description: Minimum power consumption of the board in watts.
+      - name: consumo_medio_w
+        description: Average power consumption of the board in watts.
+      - name: consumo_tipico_w
+        description: Typical power consumption of the board in watts (used as default).
         tests:
           - not_null
     tests:
       - dbt_expectations.expect_table_row_count_to_be_between:
           arguments:
             min_value: 1
+
   - name: stg_alumno15__bs_hardware_summary
     description: Silver staging model summarizing board counts and hardware inventory per Base Station.
     config:
-      tags:
-        - silver
-        - stg
-        - bs
+      tags: [silver, stg, bs]
     columns:
       - name: bs_id
         description: Base Station surrogate key.
@@ -124,88 +141,88 @@ models:
                 field: bs_id
       - name: total_boards
         description: Number of boards installed in the Base Station.
+        tests:
+          - not_null
     tests:
       - dbt_expectations.expect_table_row_count_to_be_between:
           arguments:
             min_value: 1
+
   - name: stg_alumno15__bs_home_subnet
-    description: Silver staging model exposing home subnet and IP addressing metadata for the Base Station.
+    description: Silver staging model exposing distinct home subnets and their hierarchical breakdown.
     config:
-      tags:
-        - silver
-        - stg
-        - bs
+      tags: [silver, stg, bs]
     columns:
-      - name: bs_id
-        description: Base Station surrogate key.
+      - name: home_subnet_id
+        description: Surrogate key for the home subnet.
         tests:
           - not_null
-          - relationships:
-              arguments:
-                to: ref('stg_alumno15__bs')
-                field: bs_id
+          - unique
       - name: home_subnet
         description: Subnet associated with the Base Station.
+        tests:
+          - not_null
+      - name: root_subnet
+        description: Root or parent subnet in the addressing plan.
+      - name: region_subnet
+        description: Region grouping for the subnet in the IP plan.
+      - name: sub_region_subnet
+        description: Sub-region or cluster grouping for the subnet.
+      - name: integrated_subnet
+        description: Flag or label indicating if the subnet is integrated/active.
     tests:
       - dbt_expectations.expect_table_row_count_to_be_between:
           arguments:
             min_value: 1
+
   - name: stg_alumno15__bs_software_version
-    description: Silver staging model exposing OS/software version for the Base Station.
+    description: Silver staging model exposing distinct OSS software versions.
     config:
-      tags:
-        - silver
-        - stg
-        - bs
-        - software
+      tags: [silver, stg, bs, software]
     columns:
-      - name: bs_id
-        description: Base Station surrogate key.
+      - name: software_version_id
+        description: Surrogate key for the software version.
         tests:
           - not_null
-          - relationships:
-              arguments:
-                to: ref('stg_alumno15__bs')
-                field: bs_id
-      - name: version
-        description: Software version of the Base Station.
+          - unique
+      - name: software_version
+        description: Software version string.
+        tests:
+          - not_null
+      - name: software_version_url
+        description: Optional URL or reference link to software release notes or documentation.
     tests:
       - dbt_expectations.expect_table_row_count_to_be_between:
           arguments:
             min_value: 1
+
   - name: stg_alumno15__bs_vendors
-    description: Silver staging model joining Base Stations with vendor reference information.
+    description: Silver staging model with vendor reference information.
     config:
-      tags:
-        - silver
-        - stg
-        - bs
-        - vendors
+      tags: [silver, stg, bs, vendors]
     columns:
-      - name: bs_id
-        description: Base Station surrogate key.
+      - name: vendor_id
+        description: Surrogate key for the vendor.
         tests:
           - not_null
-          - relationships:
-              arguments:
-                to: ref('stg_alumno15__bs')
-                field: bs_id
+          - unique
       - name: vendor_name
-        description: Vendor associated with the Base Station.
+        description: Vendor associated with the Base Stations.
         tests:
           - not_null
+      - name: support_phone
+        description: Vendor support phone number (if available).
+      - name: contact_name
+        description: Main vendor contact name (if available).
     tests:
       - dbt_expectations.expect_table_row_count_to_be_between:
           arguments:
             min_value: 1
+
   - name: stg_alumno15__bs_ethport_details
     description: Silver staging model providing a cleaned and enriched list of Ethernet ports per Base Station.
     config:
-      tags:
-        - silver
-        - stg
-        - bs
-        - ethport
+      tags: [silver, stg, bs, ethport]
     columns:
       - name: bs_id
         description: Base Station surrogate key.
@@ -219,19 +236,25 @@ models:
         description: Ethernet port number.
         tests:
           - not_null
+      - name: ne_name
+        description: Network element name where the Ethernet port is located.
+      - name: cabinet_no
+        description: Cabinet identifier for the port location.
+      - name: slot_no
+        description: Slot identifier within the cabinet.
+      - name: port_type
+        description: Port type or role (e.g. uplink, downlink, management).
     tests:
       - dbt_expectations.expect_compound_columns_to_be_unique:
           arguments:
             column_list:
               - bs_id
               - port_no
+
   - name: stg_alumno15__alarm_log
     description: Silver staging model standardizing raw alarm events from Base Stations.
     config:
-      tags:
-        - silver
-        - stg
-        - alarm
+      tags: [silver, stg, alarm]
     columns:
       - name: alarm_id
         description: Alarm identifier assigned by OSS.
@@ -242,116 +265,122 @@ models:
         tests:
           - not_null
       - name: occurred_on_nt
-        description: Timestamp when the alarm occurred.
+        description: Timestamp when the alarm occurred (normalized to project time zone).
         tests:
           - not_null
       - name: location_information_raw
+        description: Raw location information string from the alarm payload.
         tests:
           - not_null
       - name: location_descriptor
+        description: Parsed location descriptor (e.g. cell, board, interface) derived from the raw string.
         tests:
           - not_null:
               config:
                 severity: warn
+      - name: alarm_number
+        description: Alarm type identifier as reported by the vendor.
+      - name: severity
+        description: Severity of the alarm instance (e.g. critical, major, minor).
     tests:
       - dbt_expectations.expect_table_row_count_to_be_between:
           arguments:
             min_value: 1
+
   - name: stg_alumno15__alarm_log_cleared_by
-    description: Silver staging model linking alarm events to the operator or process that cleared them.
+    description: Silver staging model defining the entities that clear alarms and their type.
     config:
-      tags:
-        - silver
-        - stg
-        - alarm
+      tags: [silver, stg, alarm]
     columns:
-      - name: alarm_id
-        description: Alarm identifier used to match with raw alarm logs.
+      - name: cleared_by_id
+        description: Surrogate key for the clearing entity (user or system).
         tests:
           - not_null
-          - relationships:
-              arguments:
-                to: ref('stg_alumno15__alarm_log')
-                field: alarm_id
+          - unique
       - name: cleared_by
         description: User or system responsible for clearing the alarm.
+        tests:
+          - not_null
+      - name: cleared_by_type
+        description: Classification of the clearer (not_cleared, system, oss_user).
+        tests:
+          - not_null
     tests:
       - dbt_expectations.expect_table_row_count_to_be_between:
           arguments:
             min_value: 1
+
   - name: stg_alumno15__alarms_details
     description: Silver staging model containing static reference information about alarm types, categories and severities.
     config:
-      tags:
-        - silver
-        - stg
-        - alarm
-        - reference
+      tags: [silver, stg, alarm, reference]
     columns:
       - name: alarm_number
-        description: Alarm type identifier.
+        description: Alarm type identifier (vendor-specific code).
         tests:
           - not_null
           - unique
       - name: severity
-        description: Severity assigned to this alarm type.
+        description: Default severity assigned to this alarm type.
+      - name: vendor_id
+        description: Surrogate key for the vendor that defines this alarm catalogue.
     tests:
       - dbt_expectations.expect_table_row_count_to_be_between:
           arguments:
             min_value: 1
+
   - name: stg_alumno15__statistics_rrc_rab
     description: Silver staging model with RRC/RAB performance statistics for each cell and time interval.
     config:
-      tags:
-        - silver
-        - stg
-        - stats
+      tags: [silver, stg, stats]
     tests:
       - dbt_expectations.expect_compound_columns_to_be_unique:
           arguments:
             column_list:
               - cell_id
-              - period_start
+              - measure_time
     columns:
       - name: cell_id
-        description: Cell surrogate key referencing the cell dimension.
+        description: Cell surrogate key referencing the cell staging model.
         tests:
           - not_null
           - relationships:
               arguments:
                 to: ref('stg_alumno15__cell')
                 field: cell_id
-      - name: period_start
-        description: Start timestamp of the statistics interval.
+      - name: measure_time
+        description: Start timestamp of the statistics interval, normalized to project time zone.
         tests:
           - not_null
       - name: rrc_requests
-        description: Number of RRC connection requests.
+        description: Number of RRC connection requests during the interval.
+      - name: rab_established
+        description: Number of RAB connections successfully established during the interval.
+
   - name: stg_alumno15__statistics_traffic
     description: Silver staging model with traffic and throughput performance statistics for each cell and time interval.
     config:
-      tags:
-        - silver
-        - stg
-        - stats
+      tags: [silver, stg, stats]
     tests:
       - dbt_expectations.expect_compound_columns_to_be_unique:
           arguments:
             column_list:
               - cell_id
-              - period_start
+              - measure_time
     columns:
       - name: cell_id
-        description: Cell surrogate key referencing the cell model.
+        description: Cell surrogate key referencing the cell staging model.
         tests:
           - not_null
           - relationships:
               arguments:
                 to: ref('stg_alumno15__cell')
                 field: cell_id
-      - name: period_start
-        description: Start timestamp of the statistics interval.
+      - name: measure_time
+        description: Start timestamp of the statistics interval, normalized to project time zone.
         tests:
           - not_null
       - name: dl_cell_thp_mbps
         description: Downlink cell throughput in Mbps (averaged over the period).
+      - name: ul_cell_thp_mbps
+        description: Uplink cell throughput in Mbps (averaged over the period, if available).

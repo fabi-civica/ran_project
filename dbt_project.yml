@@ -31,7 +31,7 @@ clean-targets: # directories to be removed by `dbt clean`
 # continue to be built as views. These settings can be overridden in the individual model files
 # using the `{{ config(...) }}` macro.
 vars:
-  'dbt_date:time_zone': 'Europe/Madrid' # esto cuando se usa?
+  'dbt_date:time_zone': 'Europe/Madrid'
   traffic_revenue_coef: 0.05
 
 models:
@@ -54,7 +54,8 @@ models:
       +schema: marts
       kpis:
         +schema: kpis
-
+      financial:
+        +schema: financial
 
     2del:
       +enabled: false
