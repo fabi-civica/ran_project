@@ -1,0 +1,156 @@
+{{ config(
+    materialized = 'view'
+) }}
+
+-- HOT CELLS LAST 7 DAYS
+-- Grano: 1 fila por celda (cell_key) agregada en la ventana de los últimos 7 días
+-- La fecha de referencia (measure_date_id / measure_date) es el último día disponible
+-- en cell_daily_traffic (fin de la ventana de 7 días).
+
+with daily as (
+
+    -- Tráfico diario por celda (ya calculado en Gold)
+    select
+        cell_key,
+        measure_date_id,
+        measure_date,
+        trafico_dl_sum,
+        trafico_dl_avg,
+        dl_cell_thp_mbps_avg,
+        dl_cell_thp_mbps_max,
+        dl_user_thp_mbps_avg,
+        rb_utilizing_rate_dl_pct_avg,
+        erab_estab_succ_rate_pct_avg,
+        call_setup_succ_rate_pct_avg
+    from {{ ref('cell_daily_traffic') }}
+
+),
+
+max_date as (
+
+    -- Última fecha disponible en el histórico diario
+    select
+        max(measure_date_id) as max_measure_date_id
+    from daily
+
+),
+
+last_7_days as (
+
+    -- Filtramos solo los últimos 7 días respecto a la última fecha
+    select
+        d.*
+    from daily d
+    join max_date m
+      on d.measure_date_id >= dateadd(day, -6, m.max_measure_date_id) -- ventana de 7 días
+
+),
+
+agg_cells_7d as (
+
+    -- Agregamos métricas en la ventana de 7 días por celda
+    select
+        l.cell_key,
+
+        -- agregados 7d
+        count(*)                           as days_count_7d,
+        sum(l.trafico_dl_sum)              as trafico_dl_sum_7d,
+        avg(l.trafico_dl_avg)              as trafico_dl_avg_7d,
+        avg(l.dl_cell_thp_mbps_avg)        as dl_cell_thp_mbps_avg_7d,
+        max(l.dl_cell_thp_mbps_max)        as dl_cell_thp_mbps_max_7d,
+        avg(l.dl_user_thp_mbps_avg)        as dl_user_thp_mbps_avg_7d,
+        avg(l.rb_utilizing_rate_dl_pct_avg)   as rb_utilizing_rate_dl_pct_avg_7d,
+        avg(l.erab_estab_succ_rate_pct_avg)   as erab_estab_succ_rate_pct_avg_7d,
+        avg(l.call_setup_succ_rate_pct_avg)   as call_setup_succ_rate_pct_avg_7d
+
+    from last_7_days l
+    group by
+        l.cell_key
+
+),
+
+dim_cell as (
+
+    select
+        c.cell_id          as cell_key,
+        c.cell_name,
+        c.local_cell_id,
+        c.bs_id,
+        c.cell_status,
+        c.cell_topology_type,
+        c.bandwidth_id
+    from {{ ref('dim_cell') }} c
+
+),
+
+dim_bs as (
+
+    select
+        b.bs_id,
+        b.bs_name,
+        b.rat_technology,
+        b.home_subnet_id,
+        b.software_version_id,
+        b.vendor_id
+    from {{ ref('dim_bs') }} b
+
+),
+
+dim_vendor as (
+
+    select
+        v.vendor_id,
+        v.vendor_name
+    from {{ ref('dim_vendor') }} v
+
+),
+
+ref_date as (
+
+    -- Resolvemos la fecha de referencia (fin de la ventana) y su date_id
+    select
+        m.max_measure_date_id                    as measure_date_id,
+        d.date_day                               as measure_date
+    from max_date m
+    join {{ ref('dim_date') }} d
+      on m.max_measure_date_id = d.date_id
+
+)
+
+select
+    -- Fecha de referencia (fin de la ventana de 7 días)
+    r.measure_date_id,
+    r.measure_date,
+
+    -- Clave y atributos de celda
+    a.cell_key,
+    c.cell_name,
+    c.local_cell_id,
+    c.cell_status,
+    c.cell_topology_type,
+    c.bandwidth_id,
+
+    -- Nodo y vendor
+    b.bs_id,
+    b.bs_name,
+    b.rat_technology,
+    b.home_subnet_id,
+    b.software_version_id,
+    v.vendor_name,
+
+    -- Métricas 7 días
+    a.days_count_7d,
+    a.trafico_dl_sum_7d,
+    a.trafico_dl_avg_7d,
+    a.dl_cell_thp_mbps_avg_7d,
+    a.dl_cell_thp_mbps_max_7d,
+    a.dl_user_thp_mbps_avg_7d,
+    a.rb_utilizing_rate_dl_pct_avg_7d,
+    a.erab_estab_succ_rate_pct_avg_7d,
+    a.call_setup_succ_rate_pct_avg_7d
+
+from agg_cells_7d a
+join dim_cell   c on a.cell_key = c.cell_key
+join dim_bs     b on c.bs_id    = b.bs_id
+join dim_vendor v on b.vendor_id = v.vendor_id
+cross join ref_date r
