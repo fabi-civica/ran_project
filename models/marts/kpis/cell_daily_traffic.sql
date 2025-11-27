@@ -1,8 +1,5 @@
--- models/marts/performance/cell_daily_traffic.sql
--- Agregación diaria de tráfico por celda
-
 {{ config(
-    materialized = 'table'
+    materialized = 'view'
 ) }}
 
 with fact as (

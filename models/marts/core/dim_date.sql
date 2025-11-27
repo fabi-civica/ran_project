@@ -13,19 +13,3 @@ select
     *
 
 from raw_generated_data
-
-
-/*
-models:
-  - name: dim_date
-    columns:
-      - name: date_id
-        tests:
-          - unique
-          - not_null
-      - name: date_day
-        tests:
-          - unique
-          - not_null
-          */
-        
