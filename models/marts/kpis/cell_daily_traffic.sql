@@ -1,3 +1,4 @@
+
 {{ config(
     materialized = 'view'
 ) }}
@@ -22,24 +23,17 @@ dim_date as (
 aggregated as (
 
     select
-        f.cell_key,
+        f.cell_id,
         f.measure_date_id,
         d.date_day as measure_date,
-
-        -- número de muestras ese día
         count(*)                                 as samples_count,
-
-        -- agregaciones de tráfico
         sum(f.trafico_dl)                        as trafico_dl_sum,
         avg(f.trafico_dl)                        as trafico_dl_avg,
-
-        -- agregaciones de KPIs
         avg(f.dl_cell_thp_mbps)                  as dl_cell_thp_mbps_avg,
         avg(f.dl_user_thp_mbps)                  as dl_user_thp_mbps_avg,
         avg(f.rb_utilizing_rate_dl_pct)          as rb_utilizing_rate_dl_pct_avg,
         avg(f.erab_estab_succ_rate_pct)          as erab_estab_succ_rate_pct_avg,
         avg(f.call_setup_succ_rate_pct)          as call_setup_succ_rate_pct_avg,
-
         max(f.dl_cell_thp_mbps)                  as dl_cell_thp_mbps_max,
         max(f.trafico_dl)                        as trafico_dl_max
 
@@ -47,7 +41,7 @@ aggregated as (
     join dim_date d
         on f.measure_date_id = d.date_id
     group by
-        f.cell_key,
+        f.cell_id,
         f.measure_date_id,
         d.date_day
 
@@ -56,7 +50,7 @@ aggregated as (
 dim_cell as (
 
     select
-        c.cell_id       as cell_key,
+        c.cell_id,
         c.cell_name,
         c.local_cell_id,
         c.bs_id,
@@ -94,12 +88,9 @@ dim_vendor as (
 )
 
 select
-    -- claves
-    a.cell_key,
+    a.cell_id,
     a.measure_date_id,
     a.measure_date,
-
-    -- dim celda
     c.cell_name,
     c.local_cell_id,
     c.tac,
@@ -108,18 +99,12 @@ select
     c.bandwidth_id,
     c.cell_status,
     c.cell_topology_type,
-
-    -- dim BS
     b.bs_name,
     b.ne_id,
     b.rat_technology,
     b.home_subnet_id,
     b.software_version_id,
-
-    -- vendor
     v.vendor_name,
-
-    -- métricas agregadas
     a.samples_count,
     a.trafico_dl_sum,
     a.trafico_dl_avg,
@@ -132,6 +117,6 @@ select
     a.trafico_dl_max
 
 from aggregated a
-join dim_cell   c on a.cell_key = c.cell_key
+join dim_cell   c on a.cell_id = c.cell_id
 join dim_bs     b on c.bs_id    = b.bs_id
 join dim_vendor v on b.vendor_id = v.vendor_id
