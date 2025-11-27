@@ -1,4 +1,4 @@
--- unique_key = 'vendor_id'     -- de cara a futuros incrementales / SCD2
+
 {{ config(
     materialized = 'table'
 ) }}

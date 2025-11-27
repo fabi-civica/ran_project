@@ -58,14 +58,14 @@ renamed as (
         {{ dbt_utils.generate_surrogate_key(['cell_name']) }} as cell_id,
         measure_time,
         measure_period,
-        rb_utilizing_rate_dl_pct,
-        erab_estab_succ_rate_pct,
-        call_setup_succ_rate_pct,
-        cell_dl_avg_thp_kbps,
-        cell_ul_avg_thp_kbps,
-        dl_cell_thp_mbps,
-        dl_user_thp_mbps,
-        trafico_dl,
+        rb_utilizing_rate_dl_pct::number(5,2)        as rb_utilizing_rate_dl_pct,
+        erab_estab_succ_rate_pct::number(5,2)        as erab_estab_succ_rate_pct,
+        call_setup_succ_rate_pct::number(5,2)        as call_setup_succ_rate_pct,
+        cell_dl_avg_thp_kbps::number(18,2)           as cell_dl_avg_thp_kbps,
+        cell_ul_avg_thp_kbps::number(18,2)           as cell_ul_avg_thp_kbps,
+        dl_cell_thp_mbps::number(18,2)               as dl_cell_thp_mbps,
+        dl_user_thp_mbps::number(18,2)               as dl_user_thp_mbps,
+        trafico_dl::number(18,2)                     as trafico_dl,
         convert_timezone('Europe/Madrid', current_timestamp()) as datetime_row_loaded
 
     from filtered

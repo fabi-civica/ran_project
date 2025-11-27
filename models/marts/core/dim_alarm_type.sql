@@ -1,4 +1,4 @@
--- unique_key = 'alarm_id'     -- de cara a futuros incrementales / SCD2
+
 {{ config(
     materialized = 'table'
 ) }}
