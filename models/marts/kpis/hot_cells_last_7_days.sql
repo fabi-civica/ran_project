@@ -1,5 +1,3 @@
--- models/marts/performance/hot_cells_last_7_days.sql
--- TOP celdas más cargadas últimos 7 días
 
 {{ config(
     materialized = 'view'
@@ -7,7 +5,6 @@
 
 with last_7_days as (
 
-    -- límite temporal basado en la dimensión de fechas
     select
         max(measure_date) as max_date
     from {{ ref('cell_daily_traffic') }}
@@ -16,7 +13,6 @@ with last_7_days as (
 
 filtered as (
 
-    -- filtramos cell_daily_traffic a los últimos 7 días
     select
         cdt.*
     from {{ ref('cell_daily_traffic') }} cdt
@@ -28,10 +24,8 @@ filtered as (
 
 aggregated_7d as (
 
-    -- agregamos por celda en la ventana de 7 días
     select
-        cell_key,
-        -- información de dimensión (las mantenemos tal cual vienen de cell_daily_traffic)
+        cell_id,
         cell_name,
         local_cell_id,
         tac,
@@ -46,12 +40,8 @@ aggregated_7d as (
         home_subnet_id,
         software_version_id,
         vendor_name,
-
-        -- ventana temporal
         min(measure_date) as start_date,
         max(measure_date) as end_date,
-
-        -- métricas agregadas
         sum(samples_count)                       as samples_count_7d,
         sum(trafico_dl_sum)                      as trafico_dl_sum_7d,
         avg(trafico_dl_avg)                      as trafico_dl_avg_7d,
@@ -65,7 +55,7 @@ aggregated_7d as (
 
     from filtered
     group by
-        cell_key,
+        cell_id,
         cell_name,
         local_cell_id,
         tac,
@@ -87,13 +77,9 @@ ranked as (
 
     select
         a.*,
-
-        -- ranking global por tráfico DL en 7 días
         rank() over (
             order by trafico_dl_sum_7d desc
         ) as global_rank_by_traffic,
-
-        -- ranking por vendor
         rank() over (
             partition by vendor_name
             order by trafico_dl_sum_7d desc
@@ -106,5 +92,3 @@ ranked as (
 select
     *
 from ranked
--- opcional: quedarte solo con las TOP 50 globales
--- where global_rank_by_traffic <= 50

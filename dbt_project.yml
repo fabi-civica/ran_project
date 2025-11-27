@@ -32,6 +32,7 @@ clean-targets: # directories to be removed by `dbt clean`
 # using the `{{ config(...) }}` macro.
 vars:
   'dbt_date:time_zone': 'Europe/Madrid' # esto cuando se usa?
+  traffic_revenue_coef: 0.05
 
 models:
   +persist_docs:
@@ -57,6 +58,6 @@ models:
 
     2del:
       +enabled: false
-      
+
 flags:
   require_generic_test_arguments_property: true
