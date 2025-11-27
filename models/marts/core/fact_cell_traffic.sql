@@ -15,11 +15,11 @@ with stats as (
     from {{ ref('stg_alumno15__statistics_traffic') }}
 
     {% if is_incremental() %}
-      where datetime_row_loaded >
-            (select coalesce(max(fact_created_at), to_timestamp('1900-01-01','YYYY-MM-DD'))
-             from {{ this }})
+    where measure_time > (
+        select coalesce(max(measure_time), '1900-01-01'::timestamp_tz)
+        from {{ this }}
+    )
     {% endif %}
-
 
 ),
 

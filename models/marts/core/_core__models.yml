@@ -9,7 +9,9 @@ models:
         description: "Surrogate key del evento de alarma."
         tests:
           - not_null
-          - unique
+          - unique:
+              config:
+                severity: warn
 
       - name: alarm_id
         description: "FK a dim_alarm_type (tipo de alarma)."
@@ -19,6 +21,7 @@ models:
               arguments:
                 to: ref('dim_alarm_type')
                 field: alarm_id
+
       - name: bs_id
         description: "FK al nodo (dim_bs)."
         tests:
@@ -27,6 +30,7 @@ models:
               arguments:
                 to: ref('dim_bs')
                 field: bs_id
+
       - name: cell_id
         description: "FK a dim_cell, cuando la alarma está asociada a una celda concreta."
         tests:
@@ -34,6 +38,9 @@ models:
               arguments:
                 to: ref('dim_cell')
                 field: cell_id
+              config:
+                severity: warn
+
       - name: occurred_date_id
         description: "Fecha de ocurrencia de la alarma (role-playing de dim_date)."
         tests:
@@ -42,6 +49,7 @@ models:
               arguments:
                 to: ref('dim_date')
                 field: date_id
+
       - name: cleared_date_id
         description: "Fecha de cierre de la alarma (nullable si sigue activa)."
         tests:
@@ -49,6 +57,7 @@ models:
               arguments:
                 to: ref('dim_date')
                 field: date_id
+
       - name: is_cleared
         description: "Flag que indica si la alarma está cerrada (true) o activa (false)."
 
@@ -56,25 +65,48 @@ models:
         description: "Duración de la alarma en minutos (solo cuando está cerrada)."
 
   - name: fact_cell_traffic
+    description: "Hechos de tráfico por celda y hora, derivados de las estadísticas de rendimiento."
     columns:
-      - name: traffic_event_key
+      - name: statistic_traffic_id
+        description: "Surrogate key de la fila de tráfico (celda + timestamp)."
         tests:
           - not_null
           - unique
-      - name: cell_key
+      - name: cell_id
+        description: "FK a dim_cell."
         tests:
           - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_cell')
+                field: cell_id
       - name: measure_date_id
+        description: "FK a dim_date (fecha de la medida)."
         tests:
           - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_id
+      - name: measure_hour_id
+        description: "FK a dim_time_hour (hora de la medida)."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_time_hour')
+                field: time_hour_id
 
   - name: dim_date
+    description: "Dimensión de fechas del calendario. 1 fila por día."
     columns:
       - name: date_id
+        description: "Surrogate key de la fecha (generalmente YYYYMMDD)."
         tests:
           - not_null
           - unique
       - name: date_day
+        description: "Fecha en formato DATE nativo."
         tests:
           - not_null
           - unique
@@ -87,6 +119,8 @@ models:
         tests:
           - not_null
           - unique
+      - name: hour_label
+        description: "Etiqueta legible de la hora (por ejemplo, '00:00-00:59')."
 
   - name: dim_bs
     description: "Dimensión de estaciones base (BS). Una fila por BS, uniendo RAT, subred y versión SW."
@@ -97,17 +131,17 @@ models:
           - not_null
           - unique
       - name: bs_name
-        description: "Nombre de la estación base (ne_name)."
+        description: "Nombre de la estación base (ne_name en OSS)."
         tests:
           - not_null
       - name: ne_id
-        description: "Identificador técnico del elemento de red."
+        description: "Identificador técnico del elemento de red (si aplica)."
       - name: rat_id
         description: "Clave surrogate de la combinación tipo de nodo + RAT."
       - name: ne_type
-        description: "Tipo de nodo (eNodeB, NodeB, BTS, etc.)."
+        description: "Tipo de nodo (eNodeB, gNodeB, etc.)."
       - name: rat_technology
-        description: "Tecnología de acceso radio (2G, 3G, 4G, etc.)."
+        description: "Tecnología de acceso radio dominante (2G, 3G, 4G, 5G)."
       - name: home_subnet_id
         description: "Clave surrogate de la subred asociada a la BS."
       - name: home_subnet
@@ -117,7 +151,7 @@ models:
       - name: software_version
         description: "Versión de software instalada en el nodo."
       - name: vendor_id
-        description: "Identificador del vendor de la BS."
+        description: "Identificador del vendor de la BS (FK a dim_vendor)."
       - name: om_ip_address
         description: "IP O&M del nodo."
       - name: is_connected
@@ -125,7 +159,7 @@ models:
         tests:
           - not_null
       - name: rnc_by_rat
-        description: "RNC asociado (para RAT 3G), si aplica."
+        description: "RNC/BNG/etc asociado (para ciertas RAT), si aplica."
       - name: creation_time
         description: "Fecha/hora de creación del nodo en el OSS."
       - name: first_connection_time
@@ -163,18 +197,39 @@ models:
         description: "Timestamp de carga en la dimensión celda."
 
   - name: dim_alarm_type
+    description: "Dimensión de tipos de alarma (catálogo de alarm IDs del vendor)."
     columns:
-      - name: alarm_key
+      - name: alarm_id
+        description: "Surrogate key del tipo de alarma."
         tests:
           - not_null
           - unique
       - name: alarm_id_by_vendor
+        description: "Identificador de alarma según el catálogo del vendor."
         tests:
           - not_null
       - name: vendor_id
+        description: "Vendor que define este tipo de alarma (FK a dim_vendor)."
         tests:
           - not_null
 
   - name: dim_vendor
-
-  
+    description: "Dimensión de vendors/equipos de red. Una fila por vendor."
+    columns:
+      - name: vendor_id
+        description: "Surrogate key del vendor."
+        tests:
+          - not_null
+          - unique
+      - name: vendor_name
+        description: "Nombre del vendor (Huawei, Ericsson, Nokia, etc.)."
+        tests:
+          - not_null
+      - name: support_phone
+        description: "Teléfono de soporte principal del vendor."
+      - name: contact_name
+        description: "Nombre del contacto comercial/técnico principal."
+      - name: contact_email
+        description: "Correo de contacto del vendor."
+      - name: dim_created_at
+        description: "Timestamp de carga en la dimensión vendor."

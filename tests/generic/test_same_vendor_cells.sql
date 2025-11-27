@@ -9,3 +9,4 @@
       and {{ node_column }} is not null
 
 {% endtest %}
+
