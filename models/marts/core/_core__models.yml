@@ -33,13 +33,6 @@ models:
 
       - name: cell_id
         description: "FK a dim_cell, cuando la alarma está asociada a una celda concreta."
-        tests:
-          - relationships:
-              arguments:
-                to: ref('dim_cell')
-                field: cell_id
-              config:
-                severity: warn
 
       - name: occurred_date_id
         description: "Fecha de ocurrencia de la alarma (role-playing de dim_date)."

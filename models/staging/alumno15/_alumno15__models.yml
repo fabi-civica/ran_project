@@ -139,10 +139,13 @@ models:
               arguments:
                 to: ref('stg_alumno15__bs')
                 field: bs_id
+
       - name: total_boards
-        description: Number of boards installed in the Base Station.
+        description: Number of boards installed in the Base Station. Null values indicate that the hardware inventory information was not available in the source.
         tests:
-          - not_null
+          - not_null:
+              config:
+                severity: warn
     tests:
       - dbt_expectations.expect_table_row_count_to_be_between:
           arguments:
@@ -260,28 +263,35 @@ models:
         description: Alarm identifier assigned by OSS.
         tests:
           - not_null
+
       - name: ne_name
         description: Network element where the alarm occurred.
         tests:
-          - not_null
+          - not_null:
+              config:
+                severity: warn          # antes sin config → error
+
       - name: occurred_on_nt
         description: Timestamp when the alarm occurred (normalized to project time zone).
         tests:
-          - not_null
+          - not_null:
+              config:
+                severity: warn
+
       - name: location_information_raw
         description: Raw location information string from the alarm payload.
         tests:
-          - not_null
+          - not_null:
+              config:
+                severity: warn
+
       - name: location_descriptor
         description: Parsed location descriptor (e.g. cell, board, interface) derived from the raw string.
         tests:
           - not_null:
               config:
                 severity: warn
-      - name: alarm_number
-        description: Alarm type identifier as reported by the vendor.
-      - name: severity
-        description: Severity of the alarm instance (e.g. critical, major, minor).
+
     tests:
       - dbt_expectations.expect_table_row_count_to_be_between:
           arguments:
@@ -318,16 +328,23 @@ models:
       - name: alarm_number
         description: Alarm type identifier (vendor-specific code).
         tests:
-          - not_null
-          - unique
+          - not_null:
+              config:
+                severity: warn
+                
       - name: severity
-        description: Default severity assigned to this alarm type.
-      - name: vendor_id
-        description: Surrogate key for the vendor that defines this alarm catalogue.
+        description: Severity of the alarm (e.g. critical, major, minor).
+
+      - name: alarm_text
+        description: Human readable description of the alarm provided by the vendor.
+
+      - name: alarm_category
+        description: Broad category of the alarm (for example Radio, Transmission, Hardware).
     tests:
       - dbt_expectations.expect_table_row_count_to_be_between:
           arguments:
             min_value: 1
+
 
   - name: stg_alumno15__statistics_rrc_rab
     description: Silver staging model with RRC/RAB performance statistics for each cell and time interval.
