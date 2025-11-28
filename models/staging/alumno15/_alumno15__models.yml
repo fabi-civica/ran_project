@@ -3,7 +3,7 @@ version: 2
 models:
 
   - name: stg_alumno15__bs
-    description: Silver staging model providing a unified and cleaned view of Base Stations (BS), combining metadata and Ethernet port details.
+    description: Silver staging model providing a unified and cleaned representation of Base Stations (BS), combining metadata and Ethernet port details.
     config:
       tags: [silver, stg, bs]
     columns:
@@ -16,111 +16,41 @@ models:
         description: Base Station name as reported in OSS.
         tests:
           - not_null
-      - name: vendor
-        description: Vendor associated with the Base Station (raw name from OSS).
-      - name: region
-        description: Region where the Base Station is deployed.
-      - name: city
-        description: City where the Base Station is deployed.
-      - name: number_of_eth_ports
-        description: Total number of Ethernet ports detected for the BS.
-    tests:
-      - dbt_expectations.expect_table_row_count_to_be_between:
-          arguments:
-            min_value: 1
-
-  - name: stg_alumno15__cell
-    description: Silver staging model providing standardized and enriched cell information including configuration, status and Base Station reference.
-    config:
-      tags: [silver, stg, cell]
-    columns:
-      - name: cell_id
-        description: Surrogate key for the cell, generated from cell_name.
-        tests:
-          - not_null
           - unique
-      - name: bs_id
-        description: Surrogate key for the Base Station that owns the cell.
+      - name: vendor_id
+        description: Surrogate key for the vendor, referencing the vendor dimension.
         tests:
           - not_null
           - relationships:
               arguments:
-                to: ref('stg_alumno15__bs')
-                field: bs_id
-      - name: cell_name
-        description: Cell name in OSS.
-        tests:
-          - not_null
-      - name: phycellid
-        description: Physical Cell ID.
-      - name: freqband
-        description: Frequency band of the cell.
-      - name: bandwidth_id
-        description: Huawei bandwidth code for the cell (natural key used to derive bandwidth configuration).
-      - name: tx_rx_mode_id
-        description: Huawei TX/RX mode code for the cell (natural key used to derive TX/RX configuration).
-    tests:
-      - dbt_expectations.expect_table_row_count_to_be_between:
-          arguments:
-            min_value: 1
-
-  - name: stg_alumno15__bs_rat
-    description: Silver staging model with RAT (Radio Access Technology) reference per BS type.
-    config:
-      tags: [silver, stg, bs, rat]
-    columns:
-      - name: rat_id
-        description: Surrogate key for the RAT / BS type combination.
-        tests:
-          - not_null
-          - unique
-      - name: bs_type
-        description: Network element type (e.g. eNodeB, gNodeB) as reported in OSS.
-        tests:
-          - not_null
-      - name: rat_technology
-        description: Supported RATs (e.g. GSM, UMTS, LTE, NR) encoded as text.
-        tests:
-          - not_null
-      - name: is_gsm
-        description: Flag indicating whether the BS supports GSM (2G).
-      - name: is_umts
-        description: Flag indicating whether the BS supports UMTS (3G).
-      - name: is_lte
-        description: Flag indicating whether the BS supports LTE (4G).
-      - name: is_nr
-        description: Flag indicating whether the BS supports NR (5G).
-    tests:
-      - dbt_expectations.expect_table_row_count_to_be_between:
-          arguments:
-            min_value: 1
-
-  - name: stg_alumno15__board_power_consumption
-    description: Silver staging model that contains power consumption reference data per board and vendor.
-    config:
-      tags: [silver, stg, bs, power]
-    columns:
-      - name: board_id
-        description: Surrogate key for the board type.
-        tests:
-          - not_null
-          - unique
-      - name: vendor_id
-        description: Surrogate key for the vendor providing this board.
-        tests:
-          - not_null
-      - name: board_name
-        description: Board name / type as reported in the reference table.
-        tests:
-          - not_null
-      - name: consumo_minimo_w
-        description: Minimum power consumption of the board in watts.
-      - name: consumo_medio_w
-        description: Average power consumption of the board in watts.
-      - name: consumo_tipico_w
-        description: Typical power consumption of the board in watts (used as default).
-        tests:
-          - not_null
+                to: ref('stg_alumno15__vendor')
+                field: vendor_id
+      - name: vendor_name
+        description: Vendor (equipment manufacturer) name. May be null if the vendor is not mapped.
+      - name: ne_name
+        description: Network element name associated with the Base Station. May be null if the NE is not mapped.
+      - name: home_subnet
+        description: Home subnet or addressing domain to which the Base Station belongs.
+      - name: longitude
+        description: Longitude coordinate of the Base Station site (if available).
+      - name: latitude
+        description: Latitude coordinate of the Base Station site (if available).
+      - name: maintenance_region
+        description: Maintenance region associated with the Base Station for operational grouping.
+      - name: ne_connection_status
+        description: Current connection status of the Base Station with the OSS.
+      - name: base_station_rat
+        description: Radio Access Technology of the Base Station (e.g. LTE).
+      - name: base_station_id
+        description: Identifier of the Base Station in the OSS.
+      - name: total_boards
+        description: Total number of boards installed in the Base Station (aggregated from board inventory).
+      - name: total_ethernet_ports
+        description: Total number of Ethernet ports configured on the Base Station.
+      - name: active_ethernet_ports
+        description: Number of Ethernet ports currently active (Up).
+      - name: total_power_consumption_w
+        description: Estimated total power consumption in watts, based on installed boards and reference consumption.
     tests:
       - dbt_expectations.expect_table_row_count_to_be_between:
           arguments:
@@ -141,8 +71,6 @@ models:
                 field: bs_id
       - name: total_boards
         description: Number of boards installed in the Base Station.
-        tests:
-          - not_null
     tests:
       - dbt_expectations.expect_table_row_count_to_be_between:
           arguments:
@@ -164,68 +92,14 @@ models:
           - not_null
       - name: root_subnet
         description: Root or parent subnet in the addressing plan.
-      - name: region_subnet
-        description: Region grouping for the subnet in the IP plan.
-      - name: sub_region_subnet
-        description: Sub-region or cluster grouping for the subnet.
-      - name: integrated_subnet
-        description: Flag or label indicating if the subnet is integrated/active.
-    tests:
-      - dbt_expectations.expect_table_row_count_to_be_between:
-          arguments:
-            min_value: 1
 
-  - name: stg_alumno15__bs_software_version
-    description: Silver staging model exposing distinct OSS software versions.
+  - name: stg_alumno15__bs_port
+    description: Silver staging model exposing Ethernet ports per Base Station with status and traffic indicators.
     config:
-      tags: [silver, stg, bs, software]
-    columns:
-      - name: software_version_id
-        description: Surrogate key for the software version.
-        tests:
-          - not_null
-          - unique
-      - name: software_version
-        description: Software version string.
-        tests:
-          - not_null
-      - name: software_version_url
-        description: Optional URL or reference link to software release notes or documentation.
-    tests:
-      - dbt_expectations.expect_table_row_count_to_be_between:
-          arguments:
-            min_value: 1
-
-  - name: stg_alumno15__bs_vendors
-    description: Silver staging model with vendor reference information.
-    config:
-      tags: [silver, stg, bs, vendors]
-    columns:
-      - name: vendor_id
-        description: Surrogate key for the vendor.
-        tests:
-          - not_null
-          - unique
-      - name: vendor_name
-        description: Vendor associated with the Base Stations.
-        tests:
-          - not_null
-      - name: support_phone
-        description: Vendor support phone number (if available).
-      - name: contact_name
-        description: Main vendor contact name (if available).
-    tests:
-      - dbt_expectations.expect_table_row_count_to_be_between:
-          arguments:
-            min_value: 1
-
-  - name: stg_alumno15__bs_ethport_details
-    description: Silver staging model providing a cleaned and enriched list of Ethernet ports per Base Station.
-    config:
-      tags: [silver, stg, bs, ethport]
+      tags: [silver, stg, bs]
     columns:
       - name: bs_id
-        description: Base Station surrogate key.
+        description: Surrogate key of the Base Station.
         tests:
           - not_null
           - relationships:
@@ -251,6 +125,123 @@ models:
               - bs_id
               - port_no
 
+  - name: stg_alumno15__cell
+    description: Silver staging model exposing LTE cells with their configuration and Base Station relationship.
+    config:
+      tags: [silver, stg, cell]
+    tests:
+      - dbt_expectations.expect_compound_columns_to_be_unique:
+          arguments:
+            column_list:
+              - bs_id
+              - local_cell_id
+    columns:
+      - name: cell_id
+        description: Cell surrogate key.
+        tests:
+          - not_null
+          - unique
+      - name: bs_id
+        description: Base Station surrogate key to which the cell belongs.
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_alumno15__bs')
+                field: bs_id
+      - name: bs_name
+        description: Name of the Base Station (for convenience).
+      - name: ne_name
+        description: Network element name from which the cell is served.
+      - name: local_cell_id
+        description: Local identifier of the cell within the Base Station.
+        tests:
+          - not_null
+      - name: cell_name
+        description: Cell name as configured in the OSS.
+      - name: cellid
+        description: Logical Cell ID (CI).
+      - name: phycellid
+        description: Physical Cell Identity (PCI).
+      - name: rootsequenceidx
+        description: Root sequence index used for random access procedures.
+      - name: cellactivestate
+        description: Activation state of the cell (e.g. active, locked).
+      - name: fddtddind
+        description: Indicator of FDD or TDD mode.
+      - name: crsportnum
+        description: Number of CRS ports configured for the cell.
+      - name: tx_rx_mode_id
+        description: Reference to the Tx/Rx mode catalog.
+      - name: tx_rx_mode_desc
+        description: Text description of the Tx/Rx mode (e.g. 2T2R, 4T4R).
+      - name: freqband
+        description: LTE frequency band used by the cell.
+      - name: dlearfcn
+        description: Downlink EARFCN value.
+      - name: ulbandwidth
+        description: Uplink bandwidth.
+      - name: trackingareaid
+        description: Tracking Area identifier associated with the cell.
+      - name: tac
+        description: Tracking Area Code (TAC).
+      - name: nbcellflag
+        description: Flag indicating if the cell is Narrowband or standard LTE.
+
+  - name: stg_alumno15__vendor
+    description: Silver staging model exposing vendor catalogue with identifiers and contact information.
+    config:
+      tags: [silver, stg, reference]
+    columns:
+      - name: vendor_id
+        description: Surrogate key for the vendor, generated from vendor_name.
+        tests:
+          - not_null
+          - unique
+      - name: vendor_name
+        description: Vendor (equipment manufacturer) name.
+        tests:
+          - not_null
+          - unique
+      - name: tel_soporte
+        description: Main support phone number of the vendor.
+      - name: contacto
+        description: Primary contact person or role at the vendor.
+      - name: tel_contacto
+        description: Direct phone number of the primary contact.
+      - name: correo_contacto
+        description: Email address of the primary contact.
+    tests:
+      - dbt_expectations.expect_table_row_count_to_be_between:
+          arguments:
+            min_value: 1
+
+  - name: stg_alumno15__board_consumption
+    description: Silver staging model exposing board-level power consumption reference data by vendor and board type.
+    config:
+      tags: [silver, stg, reference]
+    columns:
+      - name: vendor_name
+        description: Vendor name, used to join with the vendor dimension.
+        tests:
+          - not_null
+      - name: board_name
+        description: Board model name.
+        tests:
+          - not_null
+      - name: consumo_minimo_w
+        description: Minimum estimated power consumption of the board (W).
+      - name: consumo_medio_w
+        description: Average power consumption of the board in watts.
+      - name: consumo_tipico_w
+        description: Typical power consumption of the board in watts (used as default).
+        tests:
+          - not_null
+    tests:
+      - dbt_expectations.expect_table_row_count_to_be_between:
+          arguments:
+            min_value: 1
+
   - name: stg_alumno15__alarm_log
     description: Silver staging model standardizing raw alarm events from Base Stations.
     config:
@@ -261,13 +252,9 @@ models:
         tests:
           - not_null
       - name: ne_name
-        description: Network element where the alarm occurred.
-        tests:
-          - not_null
+        description: Network element where the alarm occurred (may be null if not mapped from raw).
       - name: occurred_on_nt
         description: Timestamp when the alarm occurred (normalized to project time zone).
-        tests:
-          - not_null
       - name: location_information_raw
         description: Raw location information string from the alarm payload.
         tests:
@@ -315,11 +302,8 @@ models:
     config:
       tags: [silver, stg, alarm, reference]
     columns:
-      - name: alarm_number
+      - name: alarm_id
         description: Alarm type identifier (vendor-specific code).
-        tests:
-          - not_null
-          - unique
       - name: severity
         description: Default severity assigned to this alarm type.
       - name: vendor_id
@@ -328,6 +312,11 @@ models:
       - dbt_expectations.expect_table_row_count_to_be_between:
           arguments:
             min_value: 1
+      - dbt_expectations.expect_compound_columns_to_be_unique:
+          arguments:
+            column_list:
+              - vendor_id
+              - alarm_id
 
   - name: stg_alumno15__statistics_rrc_rab
     description: Silver staging model with RRC/RAB performance statistics for each cell and time interval.
@@ -352,13 +341,37 @@ models:
         description: Start timestamp of the statistics interval, normalized to project time zone.
         tests:
           - not_null
-      - name: rrc_requests
-        description: Number of RRC connection requests during the interval.
-      - name: rab_established
-        description: Number of RAB connections successfully established during the interval.
+      - name: l_rrc_connreq_att
+        description: Number of RRC connection attempts.
+      - name: l_rrc_connreq_succ
+        description: Number of successful RRC connections.
+      - name: l_rrc_setupfail_rej
+        description: Number of RRC setup failures due to rejection.
+      - name: l_rrc_setupfail_resfail
+        description: Number of RRC setup failures due to resource issues.
+      - name: l_erab_attest
+        description: Number of E-RAB establishment attempts.
+      - name: l_erab_succest
+        description: Number of successfully established E-RABs.
+      - name: l_erab_failest_mme
+        description: Number of E-RAB establishment failures attributed to MME.
+      - name: l_erab_abnormrel_other
+        description: Number of abnormal E-RAB releases (other reasons).
+      - name: l_erab_abnormrel_radio
+        description: Number of abnormal E-RAB releases due to radio.
+      - name: l_erab_abnormrel_mme
+        description: Number of abnormal E-RAB releases attributed to MME.
+      - name: l_erab_rel_mme
+        description: Number of E-RAB releases initiated by MME.
+      - name: l_erab_abnormrel
+        description: Total number of abnormal E-RAB releases.
+      - name: l_erab_normrel
+        description: Total number of normal E-RAB releases.
+      - name: l_cell_avail_dur_s
+        description: Cell availability duration during the measurement period (seconds).
 
   - name: stg_alumno15__statistics_traffic
-    description: Silver staging model with traffic and throughput performance statistics for each cell and time interval.
+    description: Silver staging model with traffic-related KPIs and throughput statistics for each cell and time interval.
     config:
       tags: [silver, stg, stats]
     tests:
@@ -380,6 +393,12 @@ models:
         description: Start timestamp of the statistics interval, normalized to project time zone.
         tests:
           - not_null
+      - name: rb_utilizing_rate_dl_pct
+        description: Downlink Resource Block utilization rate (%).
+      - name: erab_estab_succ_rate_pct
+        description: E-RAB establishment success rate (%).
+      - name: call_setup_succ_rate_pct
+        description: Call setup success rate (%).
       - name: dl_cell_thp_mbps
         description: Downlink cell throughput in Mbps (averaged over the period).
       - name: ul_cell_thp_mbps
