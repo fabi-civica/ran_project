@@ -14,13 +14,6 @@ with stats as (
 
     from {{ ref('stg_alumno15__statistics_traffic') }}
 
-    {% if is_incremental() %}
-    where measure_time > (
-        select coalesce(max(measure_time), '1900-01-01'::timestamp_tz)
-        from {{ this }}
-    )
-    {% endif %}
-
 ),
 
 dim_date as (

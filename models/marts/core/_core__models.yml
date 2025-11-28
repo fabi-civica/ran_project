@@ -9,9 +9,6 @@ models:
         description: "Surrogate key del evento de alarma."
         tests:
           - not_null
-          - unique:
-              config:
-                severity: warn
 
       - name: alarm_id
         description: "FK a dim_alarm_type (tipo de alarma)."

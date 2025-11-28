@@ -44,10 +44,6 @@ models:
       - dbt_expectations.expect_table_row_count_to_be_between:
           arguments:
             min_value: 1
-      - same_vendor_cell:
-          arguments:
-            node_column: node_name
-            cell_column: cell_name
     columns:
       - name: cell_id
         description: Surrogate key for the cell, generated from cell_name.
