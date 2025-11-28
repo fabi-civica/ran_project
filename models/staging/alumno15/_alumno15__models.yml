@@ -23,7 +23,7 @@ models:
           - not_null
           - relationships:
               arguments:
-                to: ref('stg_alumno15__vendor')
+                to: ref('stg_alumno15__bs_vendors')
                 field: vendor_id
       - name: vendor_name
         description: Vendor (equipment manufacturer) name. May be null if the vendor is not mapped.
