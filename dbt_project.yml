@@ -43,22 +43,25 @@ models:
   proyecto_fabi:
     staging:
       +materialized: view
-      +database: alumno15_dev_silver
+      +database: "{{ env_var('DBT_ENVIRONMENTS') }}_silver"
       +schema: stg
       alumno15:
         base:
           +schema: stg_base
     marts:
       +materialized: table
-      +database: alumno15_dev_gold
+      +database: "{{ env_var('DBT_ENVIRONMENTS') }}_gold"
       +schema: marts
       kpis:
         +schema: kpis
       financial:
         +schema: financial
 
-    #2del:
-    #  +enabled: false
+    2del:
+      +enabled: false
 
 flags:
   require_generic_test_arguments_property: true
+
+on-run-start:
+  - "ALTER WAREHOUSE WH_ALUMNO15 RESUME;"

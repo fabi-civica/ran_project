@@ -2,7 +2,7 @@ version: 2
 sources:
 - name: alumno15
   description: Conjunto de fuentes crudas (raw) y tablas de referencia del alumno 15 para el proyecto de red móvil LTE.
-  database: alumno15_dev_bronze
+  database: "{{ env_var('DBT_ENVIRONMENTS') }}_bronze"
   schema: alumno15
   tables:
   - name: bs_by_cell_config_bandwidth
